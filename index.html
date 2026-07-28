@@ -75,8 +75,8 @@
     <!-- TOP BAR -->
     <header class="topbar">
       <div class="greeting">
-        <h1>Good Morning, Alen! <span class="wave">👋</span></h1>
-        <p>Wednesday, May 21, 2025</p>
+        <h1 id="greetingHeading">Good Morning, Alen! <span class="wave" id="greetingWave">👋</span></h1>
+        <p><span id="greetingDate">Wednesday, May 21, 2025</span><span class="date-sep"> · </span><span id="greetingTime">9:00 AM</span></p>
       </div>
 
       <div class="search-wrap">
@@ -187,29 +187,15 @@
         <div class="card-header">
           <h3>📅 Calendar</h3>
           <div class="cal-nav">
-            <button class="cal-arrow">‹</button>
-            <span>May 2025</span>
-            <button class="cal-arrow">›</button>
+            <button class="cal-arrow" id="calPrev" aria-label="Previous month">‹</button>
+            <span id="calLabel">May 2025</span>
+            <button class="cal-arrow" id="calNext" aria-label="Next month">›</button>
           </div>
         </div>
         <div class="cal-grid">
           <div class="cal-dow">Mon</div><div class="cal-dow">Tue</div><div class="cal-dow">Wed</div>
           <div class="cal-dow">Thu</div><div class="cal-dow">Fri</div><div class="cal-dow">Sat</div><div class="cal-dow">Sun</div>
-
-          <div class="cal-day muted">28</div><div class="cal-day muted">29</div><div class="cal-day muted">30</div>
-          <div class="cal-day">1</div><div class="cal-day">2</div><div class="cal-day">3</div><div class="cal-day">4</div>
-
-          <div class="cal-day">5</div><div class="cal-day">6</div><div class="cal-day">7</div><div class="cal-day">8</div>
-          <div class="cal-day">9</div><div class="cal-day">10</div><div class="cal-day">11</div>
-
-          <div class="cal-day">12</div><div class="cal-day">13</div><div class="cal-day">14</div><div class="cal-day">15</div>
-          <div class="cal-day">16</div><div class="cal-day">17</div><div class="cal-day">18</div>
-
-          <div class="cal-day">19</div><div class="cal-day dot">20</div><div class="cal-day today">21</div><div class="cal-day">22</div>
-          <div class="cal-day">23</div><div class="cal-day">24</div><div class="cal-day">25</div>
-
-          <div class="cal-day">26</div><div class="cal-day dot">27</div><div class="cal-day dot">28</div><div class="cal-day">29</div>
-          <div class="cal-day">30</div><div class="cal-day">31</div><div class="cal-day muted">1</div>
+          <div class="cal-days" id="calDays" style="display:contents;"></div>
         </div>
       </div>
 
@@ -217,42 +203,42 @@
         <div class="card-header">
           <h3>📆 Weekly Planner</h3>
           <div class="cal-nav">
-            <button class="cal-arrow">‹</button>
-            <span>May 19 - May 25</span>
-            <button class="cal-arrow">›</button>
+            <button class="cal-arrow" id="weekPrev" aria-label="Previous week">‹</button>
+            <span id="weekLabel">May 19 - May 25</span>
+            <button class="cal-arrow" id="weekNext" aria-label="Next week">›</button>
           </div>
         </div>
         <div class="weekly-grid">
           <div class="wk-col">
-            <div class="wk-head">Mon<br><span>19</span></div>
+            <div class="wk-head" id="wkHead0" data-dow="Mon">Mon<br><span>19</span></div>
             <div class="wk-block wk-block--purple">UI Design<br><span>9-11am</span></div>
             <div class="wk-block wk-block--blue">Docs<br><span>2-4pm</span></div>
           </div>
           <div class="wk-col">
-            <div class="wk-head">Tue<br><span>20</span></div>
+            <div class="wk-head" id="wkHead1" data-dow="Tue">Tue<br><span>20</span></div>
             <div class="wk-block wk-block--blue">Code<br><span>9-11am</span></div>
             <div class="wk-block wk-block--purple">DB Design<br><span>2-4pm</span></div>
           </div>
           <div class="wk-col">
-            <div class="wk-head wk-head--active">Wed<br><span>21</span></div>
+            <div class="wk-head" id="wkHead2" data-dow="Wed">Wed<br><span>21</span></div>
             <div class="wk-block wk-block--purple">UI Design<br><span>9-11am</span></div>
             <div class="wk-block wk-block--green">Task Mgr<br><span>2-4pm</span></div>
           </div>
           <div class="wk-col">
-            <div class="wk-head">Thu<br><span>22</span></div>
+            <div class="wk-head" id="wkHead3" data-dow="Thu">Thu<br><span>22</span></div>
             <div class="wk-block wk-block--orange">Meeting<br><span>10am-11am</span></div>
             <div class="wk-block wk-block--pink">Testing<br><span>2-4pm</span></div>
           </div>
           <div class="wk-col">
-            <div class="wk-head">Fri<br><span>23</span></div>
+            <div class="wk-head" id="wkHead4" data-dow="Fri">Fri<br><span>23</span></div>
             <div class="wk-block wk-block--blue">Review<br><span>9-11am</span></div>
             <div class="wk-block wk-block--purple">Deploy<br><span>2-4pm</span></div>
           </div>
           <div class="wk-col">
-            <div class="wk-head">Sat<br><span>24</span></div>
+            <div class="wk-head" id="wkHead5" data-dow="Sat">Sat<br><span>24</span></div>
           </div>
           <div class="wk-col">
-            <div class="wk-head">Sun<br><span>25</span></div>
+            <div class="wk-head" id="wkHead6" data-dow="Sun">Sun<br><span>25</span></div>
             <div class="wk-block wk-block--green">Workout<br><span>8am</span></div>
             <div class="wk-block wk-block--blue">Plan<br><span>10am</span></div>
           </div>
@@ -505,76 +491,4 @@
 
       <div class="card shortcuts-card">
         <div class="card-header">
-          <h3>⚡ Quick Shortcuts</h3>
-        </div>
-        <div class="shortcut-grid">
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--purple">📥</span>Inbox
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--green">📌</span>Today
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--blue">📆</span>Tomorrow
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--orange">🗂</span>This Week
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--pink">⭐</span>Priority
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--cyan">🗃</span>Archive
-          </button>
-        </div>
-      </div>
-    </section>
-
-  </main>
-</div>
-
-<!-- ADD / EDIT TASK MODAL -->
-<div class="modal-overlay" id="taskModalOverlay">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
-    <div class="modal-header">
-      <h3 id="taskModalTitle">Add Task</h3>
-      <button class="modal-close" id="taskModalClose" aria-label="Close">✕</button>
-    </div>
-    <form id="taskForm" class="modal-body">
-      <label class="field">
-        <span>Title</span>
-        <input type="text" id="taskTitleInput" placeholder="e.g. Write project proposal" required>
-      </label>
-      <label class="field">
-        <span>Details</span>
-        <input type="text" id="taskSubInput" placeholder="e.g. Draft outline and share for review">
-      </label>
-      <div class="field-row">
-        <label class="field">
-          <span>Priority</span>
-          <select id="taskPriorityInput">
-            <option value="high">High</option>
-            <option value="medium" selected>Medium</option>
-            <option value="low">Low</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Start</span>
-          <input type="time" id="taskStartInput" value="09:00">
-        </label>
-        <label class="field">
-          <span>End</span>
-          <input type="time" id="taskEndInput" value="10:00">
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="taskModalCancel">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Task</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<script src="script.js"></script>
-</body>
-</html>
+          <h3>
