@@ -158,6 +158,7 @@ ul{list-style:none;}
 .greeting p{
   font-size:12.5px; color:var(--text-dim); margin-top:2px;
 }
+.date-sep{ color: var(--text-dimmer); margin: 0 2px; }
 .wave{ display:inline-block; }
 
 .search-wrap{
@@ -433,6 +434,17 @@ ul{list-style:none;}
   content:"";
   position:absolute; bottom:1px; left:50%; transform:translateX(-50%);
   width:4px; height:4px; border-radius:50%; background:var(--purple);
+}
+.cal-day{ cursor:pointer; }
+.cal-day.selected{
+  box-shadow: inset 0 0 0 1.5px var(--purple);
+  font-weight:700;
+}
+.cal-day.today.selected{ box-shadow: inset 0 0 0 1.5px #fff; }
+.cal-arrow{ cursor:pointer; padding:2px 4px; border-radius:6px; }
+.cal-arrow:hover{ background:#1a1b2b; color:var(--text); }
+.wk-head--today{
+  box-shadow: inset 0 0 0 1.5px var(--purple);
 }
 
 /* WEEKLY PLANNER */
