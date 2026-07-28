@@ -37,6 +37,17 @@ function uid() {
   return 't' + Math.random().toString(36).slice(2, 9);
 }
 
+// Runs a block of init code in isolation - if this section throws (e.g. because
+// an expected element is missing from the HTML), it's logged to the console and
+// every OTHER section still runs normally instead of the whole page breaking.
+function safeRun(label, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`[Trackler] "${label}" failed to initialize:`, err);
+  }
+}
+
 function toMinutes(hhmm) {
   if (!hhmm) return 0;
   const [h, m] = hhmm.split(':').map(Number);
@@ -393,141 +404,166 @@ function shiftWeek(delta) {
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  renderAll();
+  safeRun('core task rendering', () => {
+    renderAll();
+  });
 
-  // Live greeting: update immediately, then every 30s (keeps clock fresh without heavy work)
-  updateGreeting();
-  setInterval(updateGreeting, 30000);
+  safeRun('live greeting', () => {
+    updateGreeting();
+    setInterval(updateGreeting, 30000);
+  });
 
-  // Calendar
-  renderCalendar();
-  document.getElementById('calPrev').addEventListener('click', () => shiftCalendarMonth(-1));
-  document.getElementById('calNext').addEventListener('click', () => shiftCalendarMonth(1));
-  document.getElementById('calDays').addEventListener('click', (e) => {
-    const cell = e.target.closest('.cal-day');
-    if (!cell || cell.dataset.muted === 'true') return;
-    const day = Number(cell.dataset.day);
-    calendarState.selected = calendarState.selected === day ? null : day;
+  safeRun('calendar', () => {
     renderCalendar();
-  });
-
-  // Weekly Planner
-  renderWeeklyPlanner();
-  document.getElementById('weekPrev').addEventListener('click', () => shiftWeek(-1));
-  document.getElementById('weekNext').addEventListener('click', () => shiftWeek(1));
-
-  // Open modal from any trigger
-  document.querySelectorAll('.open-task-modal').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.preventDefault();
-      openTaskModal();
-    });
-  });
-
-  document.getElementById('taskModalClose').addEventListener('click', closeTaskModal);
-  document.getElementById('taskModalCancel').addEventListener('click', closeTaskModal);
-  modalOverlay.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) closeTaskModal();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeTaskModal();
-  });
-
-  taskForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const title = document.getElementById('taskTitleInput').value;
-    if (!title.trim()) return;
-    addTask({
-      title,
-      sub: document.getElementById('taskSubInput').value,
-      priority: document.getElementById('taskPriorityInput').value,
-      start: document.getElementById('taskStartInput').value || '09:00',
-      end: document.getElementById('taskEndInput').value || '10:00',
-    });
-    closeTaskModal();
-  });
-
-  // Delegate checkbox toggle + delete on task list (survives re-renders)
-  document.getElementById('taskList').addEventListener('change', (e) => {
-    if (e.target.matches('input[type=checkbox]')) {
-      const li = e.target.closest('.task-item');
-      if (li) toggleTask(li.dataset.id);
-    }
-  });
-  document.getElementById('taskList').addEventListener('click', (e) => {
-    const delBtn = e.target.closest('.task-delete');
-    if (delBtn) {
-      const li = delBtn.closest('.task-item');
-      if (li) deleteTask(li.dataset.id);
+    const calPrev = document.getElementById('calPrev');
+    const calNext = document.getElementById('calNext');
+    const calDays = document.getElementById('calDays');
+    if (calPrev) calPrev.addEventListener('click', () => shiftCalendarMonth(-1));
+    if (calNext) calNext.addEventListener('click', () => shiftCalendarMonth(1));
+    if (calDays) {
+      calDays.addEventListener('click', (e) => {
+        const cell = e.target.closest('.cal-day');
+        if (!cell || cell.dataset.muted === 'true') return;
+        const day = Number(cell.dataset.day);
+        calendarState.selected = calendarState.selected === day ? null : day;
+        renderCalendar();
+      });
     }
   });
 
-  // ---- Focus mode timer (unrelated to task store) ----
-  const playBtn = document.querySelector('.focus-btn.play');
-  const focusTime = document.querySelector('.focus-time');
-  const focusCaption = document.querySelector('.focus-caption');
-  let timer = null;
-  let seconds = 25 * 60;
-  let running = false;
+  safeRun('weekly planner', () => {
+    renderWeeklyPlanner();
+    const weekPrev = document.getElementById('weekPrev');
+    const weekNext = document.getElementById('weekNext');
+    if (weekPrev) weekPrev.addEventListener('click', () => shiftWeek(-1));
+    if (weekNext) weekNext.addEventListener('click', () => shiftWeek(1));
+  });
 
-  function formatTime(s) {
-    const m = Math.floor(s / 60).toString().padStart(2, '0');
-    const sec = (s % 60).toString().padStart(2, '0');
-    return `${m}:${sec}`;
-  }
+  safeRun('task modal wiring', () => {
+    document.querySelectorAll('.open-task-modal').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        openTaskModal();
+      });
+    });
 
-  if (playBtn) {
-    playBtn.addEventListener('click', () => {
-      running = !running;
-      playBtn.textContent = running ? '⏸' : '▶';
-      focusCaption.textContent = running ? 'Focusing...' : 'Paused';
+    const closeBtn = document.getElementById('taskModalClose');
+    const cancelBtn = document.getElementById('taskModalCancel');
+    if (closeBtn) closeBtn.addEventListener('click', closeTaskModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeTaskModal);
+    if (modalOverlay) {
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeTaskModal();
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalOverlay && modalOverlay.classList.contains('open')) closeTaskModal();
+    });
 
-      if (running) {
-        timer = setInterval(() => {
-          if (seconds > 0) {
-            seconds--;
-            focusTime.textContent = formatTime(seconds);
-          } else {
-            clearInterval(timer);
-            running = false;
-            playBtn.textContent = '▶';
-            focusCaption.textContent = 'Session complete!';
-          }
-        }, 1000);
-      } else {
+    if (taskForm) {
+      taskForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = document.getElementById('taskTitleInput').value;
+        if (!title.trim()) return;
+        addTask({
+          title,
+          sub: document.getElementById('taskSubInput').value,
+          priority: document.getElementById('taskPriorityInput').value,
+          start: document.getElementById('taskStartInput').value || '09:00',
+          end: document.getElementById('taskEndInput').value || '10:00',
+        });
+        closeTaskModal();
+      });
+    }
+  });
+
+  safeRun('task list interactions', () => {
+    const taskListEl = document.getElementById('taskList');
+    if (!taskListEl) return;
+    taskListEl.addEventListener('change', (e) => {
+      if (e.target.matches('input[type=checkbox]')) {
+        const li = e.target.closest('.task-item');
+        if (li) toggleTask(li.dataset.id);
+      }
+    });
+    taskListEl.addEventListener('click', (e) => {
+      const delBtn = e.target.closest('.task-delete');
+      if (delBtn) {
+        const li = delBtn.closest('.task-item');
+        if (li) deleteTask(li.dataset.id);
+      }
+    });
+  });
+
+  safeRun('focus mode timer', () => {
+    const playBtn = document.querySelector('.focus-btn.play');
+    const focusTime = document.querySelector('.focus-time');
+    const focusCaption = document.querySelector('.focus-caption');
+    let timer = null;
+    let seconds = 25 * 60;
+    let running = false;
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60).toString().padStart(2, '0');
+      const sec = (s % 60).toString().padStart(2, '0');
+      return `${m}:${sec}`;
+    }
+
+    if (playBtn) {
+      playBtn.addEventListener('click', () => {
+        running = !running;
+        playBtn.textContent = running ? '⏸' : '▶';
+        if (focusCaption) focusCaption.textContent = running ? 'Focusing...' : 'Paused';
+
+        if (running) {
+          timer = setInterval(() => {
+            if (seconds > 0) {
+              seconds--;
+              if (focusTime) focusTime.textContent = formatTime(seconds);
+            } else {
+              clearInterval(timer);
+              running = false;
+              playBtn.textContent = '▶';
+              if (focusCaption) focusCaption.textContent = 'Session complete!';
+            }
+          }, 1000);
+        } else {
+          clearInterval(timer);
+        }
+      });
+    }
+
+    const resetBtn = document.querySelector('.focus-btn.small');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
         clearInterval(timer);
-      }
-    });
-  }
+        running = false;
+        seconds = 25 * 60;
+        if (focusTime) focusTime.textContent = formatTime(seconds);
+        if (focusCaption) focusCaption.textContent = 'Ready to focus!';
+        if (playBtn) playBtn.textContent = '▶';
+      });
+    }
+  });
 
-  const resetBtn = document.querySelector('.focus-btn.small');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      clearInterval(timer);
-      running = false;
-      seconds = 25 * 60;
-      focusTime.textContent = formatTime(seconds);
-      focusCaption.textContent = 'Ready to focus!';
-      playBtn.textContent = '▶';
-    });
-  }
-
-  // Quick action / chip buttons - simple visual feedback for not-yet-wired ones
-  document.querySelectorAll('.qa-btn:not(.open-task-modal), .chip, .shortcut-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.style.opacity = '0.6';
-      setTimeout(() => (btn.style.opacity = '1'), 150);
+  safeRun('quick action button feedback', () => {
+    document.querySelectorAll('.qa-btn:not(.open-task-modal), .chip, .shortcut-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.style.opacity = '0.6';
+        setTimeout(() => (btn.style.opacity = '1'), 150);
+      });
     });
   });
 
-  // AI Assistant send (placeholder echo)
-  const aiInput = document.querySelector('.ai-input-wrap input');
-  const aiSend = document.querySelector('.ai-send');
-  if (aiSend && aiInput) {
-    aiSend.addEventListener('click', () => {
-      if (aiInput.value.trim() !== '') {
-        aiInput.value = '';
-      }
-    });
-  }
+  safeRun('AI assistant input', () => {
+    const aiInput = document.querySelector('.ai-input-wrap input');
+    const aiSend = document.querySelector('.ai-send');
+    if (aiSend && aiInput) {
+      aiSend.addEventListener('click', () => {
+        if (aiInput.value.trim() !== '') {
+          aiInput.value = '';
+        }
+      });
+    }
+  });
 });
