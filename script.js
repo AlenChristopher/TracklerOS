@@ -3,6 +3,7 @@
 // ============================================================
 
 const STORAGE_KEY = 'trackler_tasks_v1';
+const USER_NAME = 'Alen';
 
 // ---- Seed data (matches original design) ----
 const DEFAULT_TASKS = [
@@ -239,8 +240,181 @@ function closeTaskModal() {
 // EVENT WIRING
 // ============================================================
 
+// ============================================================
+// LIVE GREETING (name, time-of-day message, live clock)
+// ============================================================
+
+function updateGreeting() {
+  const now = new Date();
+  const hour = now.getHours();
+
+  let greetingWord, emoji;
+  if (hour >= 5 && hour < 12) { greetingWord = 'Good Morning'; emoji = '👋'; }
+  else if (hour >= 12 && hour < 17) { greetingWord = 'Good Afternoon'; emoji = '☀️'; }
+  else if (hour >= 17 && hour < 21) { greetingWord = 'Good Evening'; emoji = '🌆'; }
+  else { greetingWord = 'Good Night'; emoji = '🌙'; }
+
+  const heading = document.getElementById('greetingHeading');
+  if (heading) {
+    heading.innerHTML = `${greetingWord}, ${USER_NAME}! <span class="wave" id="greetingWave">${emoji}</span>`;
+  }
+
+  const dateEl = document.getElementById('greetingDate');
+  const timeEl = document.getElementById('greetingTime');
+  if (dateEl) {
+    dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+  if (timeEl) {
+    timeEl.textContent = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+}
+
+// ============================================================
+// CALENDAR (month navigation)
+// ============================================================
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const calendarState = (() => {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth(), selected: null };
+})();
+
+// Convert JS getDay() (0=Sun..6=Sat) to Monday-first index (0=Mon..6=Sun)
+function mondayIndex(jsDay) {
+  return (jsDay + 6) % 7;
+}
+
+function renderCalendar() {
+  const label = document.getElementById('calLabel');
+  const daysWrap = document.getElementById('calDays');
+  if (!label || !daysWrap) return;
+
+  const { year, month } = calendarState;
+  label.textContent = `${MONTH_NAMES[month]} ${year}`;
+
+  const firstOfMonth = new Date(year, month, 1);
+  const startOffset = mondayIndex(firstOfMonth.getDay());
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+  const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+
+  const realToday = new Date();
+  const isRealTodayMonth = realToday.getFullYear() === year && realToday.getMonth() === month;
+
+  let html = '';
+  for (let i = 0; i < totalCells; i++) {
+    const dayNum = i - startOffset + 1;
+    let cellDate, muted = false;
+
+    if (dayNum < 1) {
+      cellDate = daysInPrevMonth + dayNum;
+      muted = true;
+    } else if (dayNum > daysInMonth) {
+      cellDate = dayNum - daysInMonth;
+      muted = true;
+    } else {
+      cellDate = dayNum;
+    }
+
+    const isToday = !muted && isRealTodayMonth && cellDate === realToday.getDate();
+    const isSelected = !muted && calendarState.selected === cellDate;
+
+    const classes = ['cal-day'];
+    if (muted) classes.push('muted');
+    if (isToday) classes.push('today');
+    if (isSelected) classes.push('selected');
+
+    html += `<div class="${classes.join(' ')}" data-day="${cellDate}" data-muted="${muted}">${cellDate}</div>`;
+  }
+  daysWrap.innerHTML = html;
+}
+
+function shiftCalendarMonth(delta) {
+  calendarState.month += delta;
+  if (calendarState.month > 11) { calendarState.month = 0; calendarState.year++; }
+  if (calendarState.month < 0) { calendarState.month = 11; calendarState.year--; }
+  calendarState.selected = null;
+  renderCalendar();
+}
+
+// ============================================================
+// WEEKLY PLANNER (week navigation)
+// ============================================================
+
+const DOW_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+function startOfWeek(date) {
+  const d = new Date(date);
+  const offset = mondayIndex(d.getDay());
+  d.setDate(d.getDate() - offset);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+const weeklyState = { weekStart: startOfWeek(new Date()) };
+
+function renderWeeklyPlanner() {
+  const label = document.getElementById('weekLabel');
+  if (!label) return;
+
+  const start = weeklyState.weekStart;
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+
+  const sameMonth = start.getMonth() === end.getMonth();
+  const startStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const endStr = end.toLocaleDateString('en-US', { month: sameMonth ? undefined : 'short', day: 'numeric' });
+  label.textContent = `${startStr} - ${endStr}`;
+
+  const realToday = new Date();
+  realToday.setHours(0, 0, 0, 0);
+
+  for (let i = 0; i < 7; i++) {
+    const head = document.getElementById('wkHead' + i);
+    if (!head) continue;
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    head.innerHTML = `${DOW_LABELS[i]}<br><span>${d.getDate()}</span>`;
+    head.classList.toggle('wk-head--today', d.getTime() === realToday.getTime());
+  }
+}
+
+function shiftWeek(delta) {
+  const d = new Date(weeklyState.weekStart);
+  d.setDate(d.getDate() + delta * 7);
+  weeklyState.weekStart = d;
+  renderWeeklyPlanner();
+}
+
+// ============================================================
+// EVENT WIRING
+// ============================================================
+
 document.addEventListener('DOMContentLoaded', () => {
   renderAll();
+
+  // Live greeting: update immediately, then every 30s (keeps clock fresh without heavy work)
+  updateGreeting();
+  setInterval(updateGreeting, 30000);
+
+  // Calendar
+  renderCalendar();
+  document.getElementById('calPrev').addEventListener('click', () => shiftCalendarMonth(-1));
+  document.getElementById('calNext').addEventListener('click', () => shiftCalendarMonth(1));
+  document.getElementById('calDays').addEventListener('click', (e) => {
+    const cell = e.target.closest('.cal-day');
+    if (!cell || cell.dataset.muted === 'true') return;
+    const day = Number(cell.dataset.day);
+    calendarState.selected = calendarState.selected === day ? null : day;
+    renderCalendar();
+  });
+
+  // Weekly Planner
+  renderWeeklyPlanner();
+  document.getElementById('weekPrev').addEventListener('click', () => shiftWeek(-1));
+  document.getElementById('weekNext').addEventListener('click', () => shiftWeek(1));
 
   // Open modal from any trigger
   document.querySelectorAll('.open-task-modal').forEach(el => {
