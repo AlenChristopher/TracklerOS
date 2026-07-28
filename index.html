@@ -54,18 +54,18 @@
       <div class="today-progress-ring">
         <svg viewBox="0 0 120 120">
           <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
-          <circle class="ring-fg" cx="60" cy="60" r="52"></circle>
+          <circle class="ring-fg" id="sidebarRingFg" cx="60" cy="60" r="52"></circle>
         </svg>
         <div class="ring-center">
-          <div class="ring-pct">68%</div>
+          <div class="ring-pct" id="sidebarRingPct">68%</div>
           <div class="ring-caption">Complete</div>
         </div>
       </div>
-      <div class="footer-msg">Great job! Keep going 🎉</div>
+      <div class="footer-msg" id="footerMsg">Great job! Keep going 🎉</div>
       <div class="footer-bar">
-        <div class="footer-bar-fill"></div>
+        <div class="footer-bar-fill" id="footerBarFill"></div>
       </div>
-      <div class="footer-sub">12 of 18 tasks completed</div>
+      <div class="footer-sub" id="footerSub">12 of 18 tasks completed</div>
     </div>
   </aside>
 
@@ -75,7 +75,7 @@
     <!-- TOP BAR -->
     <header class="topbar">
       <div class="greeting">
-        <h1>Good Morning, Alex! <span class="wave">👋</span></h1>
+        <h1>Good Morning, Alen! <span class="wave">👋</span></h1>
         <p>Wednesday, May 21, 2025</p>
       </div>
 
@@ -92,7 +92,7 @@
         </button>
         <button class="icon-btn" aria-label="theme">🌙</button>
         <button class="btn btn-outline">✦ Auto Plan</button>
-        <button class="btn btn-primary">+ New Task</button>
+        <button class="btn btn-primary open-task-modal">+ New Task</button>
       </div>
     </header>
 
@@ -102,7 +102,7 @@
         <div class="stat-icon stat-icon--blue">✓</div>
         <div class="stat-body">
           <div class="stat-label">Total Tasks</div>
-          <div class="stat-value">18</div>
+          <div class="stat-value" id="statTotal">18</div>
         </div>
         <div class="stat-foot">View all tasks →</div>
       </div>
@@ -110,31 +110,31 @@
         <div class="stat-icon stat-icon--green">✓</div>
         <div class="stat-body">
           <div class="stat-label">Completed</div>
-          <div class="stat-value">12</div>
+          <div class="stat-value" id="statCompleted">12</div>
         </div>
-        <div class="stat-foot">This is amazing! 🎉</div>
+        <div class="stat-foot" id="statCompletedFoot">This is amazing! 🎉</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon--orange">⏱</div>
         <div class="stat-body">
           <div class="stat-label">Pending</div>
-          <div class="stat-value">6</div>
+          <div class="stat-value" id="statPending">6</div>
         </div>
-        <div class="stat-foot">Keep it up! 💪</div>
+        <div class="stat-foot" id="statPendingFoot">Keep it up! 💪</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon--purple">📈</div>
         <div class="stat-body">
           <div class="stat-label">Completion</div>
-          <div class="stat-value">68%</div>
+          <div class="stat-value" id="statCompletion">68%</div>
         </div>
-        <div class="stat-foot stat-foot--up">↑ 12% from yesterday</div>
+        <div class="stat-foot stat-foot--up" id="statCompletionFoot">↑ 12% from yesterday</div>
       </div>
     </section>
 
     <!-- QUICK ACTIONS -->
     <section class="quick-actions">
-      <button class="qa-btn">+ Add Task</button>
+      <button class="qa-btn open-task-modal">+ Add Task</button>
       <button class="qa-btn">+ Add Habit</button>
       <button class="qa-btn">📋 Planner</button>
       <button class="qa-btn">📅 Calendar</button>
@@ -157,10 +157,10 @@
         <div class="hero-ring">
           <svg viewBox="0 0 140 140">
             <circle class="hring-bg" cx="70" cy="70" r="60"></circle>
-            <circle class="hring-fg" cx="70" cy="70" r="60"></circle>
+            <circle class="hring-fg" id="heroRingFg" cx="70" cy="70" r="60"></circle>
           </svg>
           <div class="hero-ring-center">
-            <div class="hero-ring-pct">68%</div>
+            <div class="hero-ring-pct" id="heroRingPct">68%</div>
           </div>
         </div>
         <div class="hero-ring-caption">Daily Completion</div>
@@ -171,85 +171,15 @@
           <h3>✅ Today's Tasks</h3>
           <a class="card-link" href="#">View All</a>
         </div>
-        <ul class="task-list">
-          <li class="task-item done">
-            <input type="checkbox" checked>
-            <div class="task-info">
-              <div class="task-title">Finish Trackler UI</div>
-              <div class="task-sub">Complete dashboard layout</div>
-            </div>
-            <span class="pill pill-high">high</span>
-            <span class="task-time">09:00 - 11:00</span>
-          </li>
-          <li class="task-item done">
-            <input type="checkbox" checked>
-            <div class="task-info">
-              <div class="task-title">Code Task Manager</div>
-              <div class="task-sub">Implement CRUD operations</div>
-            </div>
-            <span class="pill pill-high">high</span>
-            <span class="task-time">11:30 - 13:00</span>
-          </li>
-          <li class="task-item">
-            <input type="checkbox">
-            <div class="task-info">
-              <div class="task-title">Design Database Schema</div>
-              <div class="task-sub">Plan data structure</div>
-            </div>
-            <span class="pill pill-medium">medium</span>
-            <span class="task-time">14:00 - 15:30</span>
-          </li>
-          <li class="task-item">
-            <input type="checkbox">
-            <div class="task-info">
-              <div class="task-title">Write Documentation</div>
-              <div class="task-sub">API and user guide</div>
-            </div>
-            <span class="pill pill-low">low</span>
-            <span class="task-time">16:00 - 17:30</span>
-          </li>
-        </ul>
-        <a class="add-link" href="#">+ Add Task</a>
+        <ul class="task-list" id="taskList"></ul>
+        <a class="add-link open-task-modal" href="#">+ Add Task</a>
       </div>
 
       <div class="card timeline-card">
         <div class="card-header">
           <h3>🕐 Timeline</h3>
         </div>
-        <ul class="timeline-list">
-          <li>
-            <div class="tl-time">09:00</div>
-            <div class="tl-dot tl-dot--blue"></div>
-            <div class="tl-body">
-              <div class="tl-title">Finish Trackler UI</div>
-              <div class="tl-sub">09:00 - 11:00</div>
-            </div>
-          </li>
-          <li>
-            <div class="tl-time">11:30</div>
-            <div class="tl-dot tl-dot--green"></div>
-            <div class="tl-body">
-              <div class="tl-title">Code Task Manager</div>
-              <div class="tl-sub">11:30 - 13:00</div>
-            </div>
-          </li>
-          <li>
-            <div class="tl-time">14:00</div>
-            <div class="tl-dot tl-dot--purple"></div>
-            <div class="tl-body">
-              <div class="tl-title">Design Database Schema</div>
-              <div class="tl-sub">14:00 - 15:30</div>
-            </div>
-          </li>
-          <li>
-            <div class="tl-time">16:00</div>
-            <div class="tl-dot tl-dot--orange"></div>
-            <div class="tl-body">
-              <div class="tl-title">Write Documentation</div>
-              <div class="tl-sub">16:00 - 17:30</div>
-            </div>
-          </li>
-        </ul>
+        <ul class="timeline-list" id="timelineList"></ul>
         <a class="add-link" href="#">+ Add Time Block</a>
       </div>
 
@@ -407,10 +337,10 @@
         </div>
         <div class="goal-item">
           <div class="goal-row">
-            <span>Complete 5 tasks</span>
-            <span class="goal-val">3/5</span>
+            <span id="goalTasksLabel">Complete 5 tasks</span>
+            <span class="goal-val" id="goalTasksVal">3/5</span>
           </div>
-          <div class="goal-bar"><div class="goal-fill" style="width:60%"></div></div>
+          <div class="goal-bar"><div class="goal-fill" id="goalTasksFill" style="width:60%"></div></div>
         </div>
         <div class="goal-item">
           <div class="goal-row">
@@ -602,6 +532,49 @@
 
   </main>
 </div>
+
+<!-- ADD / EDIT TASK MODAL -->
+<div class="modal-overlay" id="taskModalOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+    <div class="modal-header">
+      <h3 id="taskModalTitle">Add Task</h3>
+      <button class="modal-close" id="taskModalClose" aria-label="Close">✕</button>
+    </div>
+    <form id="taskForm" class="modal-body">
+      <label class="field">
+        <span>Title</span>
+        <input type="text" id="taskTitleInput" placeholder="e.g. Write project proposal" required>
+      </label>
+      <label class="field">
+        <span>Details</span>
+        <input type="text" id="taskSubInput" placeholder="e.g. Draft outline and share for review">
+      </label>
+      <div class="field-row">
+        <label class="field">
+          <span>Priority</span>
+          <select id="taskPriorityInput">
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Start</span>
+          <input type="time" id="taskStartInput" value="09:00">
+        </label>
+        <label class="field">
+          <span>End</span>
+          <input type="time" id="taskEndInput" value="10:00">
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="taskModalCancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Task</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script src="script.js"></script>
 </body>
 </html>
