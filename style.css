@@ -641,6 +641,73 @@ ul{list-style:none;}
 .shortcut-icon--pink{ background:rgba(244,63,94,0.18);}
 .shortcut-icon--cyan{ background:rgba(34,211,238,0.18);}
 
+/* TASK ITEM ACTIONS (dynamic) */
+.task-item{ position:relative; }
+.task-delete{
+  opacity:0; width:20px; height:20px; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text-dimmer); font-size:12px; flex-shrink:0;
+  transition: opacity .15s;
+}
+.task-item:hover .task-delete{ opacity:1; }
+.task-delete:hover{ color:var(--pink); background:rgba(244,63,94,0.12); }
+
+.empty-state{
+  text-align:center;
+  padding:22px 10px;
+  color: var(--text-dimmer);
+  font-size:12.5px;
+}
+
+/* MODAL */
+.modal-overlay{
+  display:none;
+  position:fixed; inset:0;
+  background: rgba(5,6,12,0.6);
+  backdrop-filter: blur(3px);
+  align-items:center; justify-content:center;
+  z-index:100;
+  padding:20px;
+}
+.modal-overlay.open{ display:flex; }
+.modal{
+  width:100%; max-width:420px;
+  background: var(--card-bg);
+  border:1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding:20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  animation: modal-in .15s ease-out;
+}
+@keyframes modal-in{
+  from{ opacity:0; transform:translateY(8px) scale(.98); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
+}
+.modal-header{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:16px;
+}
+.modal-header h3{ font-size:15px; font-weight:700; }
+.modal-close{
+  width:28px; height:28px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text-dim); font-size:13px;
+  background:#1a1b2b; border:1px solid var(--border);
+}
+.modal-body{ display:flex; flex-direction:column; gap:14px; }
+.field{ display:flex; flex-direction:column; gap:6px; flex:1; min-width:0; }
+.field span{ font-size:11.5px; color:var(--text-dim); font-weight:600; }
+.field input, .field select{
+  background:#1a1b2b; border:1px solid var(--border);
+  border-radius:9px; padding:9px 11px; font-size:13px; color:var(--text);
+  outline:none;
+}
+.field input:focus, .field select:focus{ border-color: var(--purple); }
+.field-row{ display:flex; gap:10px; }
+.modal-actions{
+  display:flex; justify-content:flex-end; gap:10px; margin-top:4px;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1400px){
   .grid-top{ grid-template-columns: 1.4fr 1fr 1fr; }
