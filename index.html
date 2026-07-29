@@ -20,34 +20,57 @@
     </div>
 
     <nav class="nav">
-      <a class="nav-item active" href="#">
-        <span class="nav-icon">▦</span> Dashboard
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-icon">🗓</span> Planner
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-icon">📅</span> Calendar
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-icon">☑</span> Tasks
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-icon">🔥</span> Habits
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-icon">◎</span> Focus Mode
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-icon">📊</span> Analytics
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-icon">✦</span> AI Assistant
-      </a>
-      <a class="nav-item" href="#">
-        <span class="nav-icon">⚙</span> Settings
-      </a>
+      <div class="nav-group">
+        <div class="nav-group-label">Today</div>
+        <a class="nav-item active" href="#">
+          <span class="nav-icon">▦</span> Dashboard
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Schedule</div>
+        <a class="nav-item" href="#">
+          <span class="nav-icon">🗓</span> Planner
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-icon">📅</span> Calendar
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-icon">☑</span> Tasks
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Focus</div>
+        <a class="nav-item" href="#">
+          <span class="nav-icon">🔥</span> Habits
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-icon">◎</span> Focus Mode
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Insights</div>
+        <a class="nav-item" href="#">
+          <span class="nav-icon">📊</span> Analytics
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">AI</div>
+        <a class="nav-item" href="#">
+          <span class="nav-icon">✦</span> AI Assistant
+        </a>
+      </div>
+
+      <div class="nav-group nav-group--settings">
+        <a class="nav-item" href="#">
+          <span class="nav-icon">⚙</span> Settings
+        </a>
+      </div>
     </nav>
+
 
     <div class="sidebar-footer">
       <div class="today-progress-label">Today's Progress</div>
@@ -145,7 +168,7 @@
     <!-- HERO + TOP RIGHT WIDGETS -->
     <section class="grid-top">
 
-      <div class="card hero-card">
+      <div class="card hero-card card--hero">
         <div class="hero-badge">✦ AI Productivity OS</div>
         <h2 class="hero-title">Today's Mission</h2>
         <div class="hero-subtitle">Finish building Trackler OS</div>
@@ -166,7 +189,7 @@
         <div class="hero-ring-caption">Daily Completion</div>
       </div>
 
-      <div class="card tasks-card">
+      <div class="card tasks-card card--primary">
         <div class="card-header">
           <h3>✅ Today's Tasks</h3>
           <a class="card-link" href="#">View All</a>
@@ -175,7 +198,7 @@
         <a class="add-link open-task-modal" href="#">+ Add Task</a>
       </div>
 
-      <div class="card timeline-card">
+      <div class="card timeline-card card--primary">
         <div class="card-header">
           <h3>🕐 Timeline</h3>
         </div>
@@ -183,7 +206,7 @@
         <a class="add-link" href="#">+ Add Time Block</a>
       </div>
 
-      <div class="card calendar-card">
+      <div class="card calendar-card card--secondary">
         <div class="card-header">
           <h3>📅 Calendar</h3>
           <div class="cal-nav">
@@ -199,7 +222,7 @@
         </div>
       </div>
 
-      <div class="card weekly-card">
+      <div class="card weekly-card card--secondary">
         <div class="card-header">
           <h3>📆 Weekly Planner</h3>
           <div class="cal-nav">
@@ -250,7 +273,7 @@
     <!-- MIDDLE ROW -->
     <section class="grid-mid">
 
-      <div class="card habit-card">
+      <div class="card habit-card card--supporting">
         <div class="card-header">
           <h3>🔥 Habit Tracker</h3>
           <a class="card-link" href="#">+ Add Habit</a>
@@ -295,7 +318,7 @@
         </ul>
       </div>
 
-      <div class="card focus-card">
+      <div class="card focus-card card--primary">
         <div class="card-header">
           <h3>🎯 Focus Mode</h3>
         </div>
@@ -316,7 +339,7 @@
         </div>
       </div>
 
-      <div class="card goals-card">
+      <div class="card goals-card card--supporting">
         <div class="card-header">
           <h3>🎯 Daily Goals</h3>
           <a class="card-link" href="#">+ Add Goal</a>
@@ -351,7 +374,7 @@
         </div>
       </div>
 
-      <div class="card achievements-card">
+      <div class="card achievements-card card--supporting">
         <div class="card-header">
           <h3>🏆 Achievements</h3>
         </div>
@@ -391,7 +414,7 @@
         </ul>
       </div>
 
-      <div class="card insights-card">
+      <div class="card insights-card card--supporting">
         <div class="card-header">
           <h3>💡 Smart Insights</h3>
         </div>
@@ -414,22 +437,22 @@
 
     <!-- BOTTOM ROW -->
     <section class="grid-bottom">
-      <div class="card analytics-card">
+      <div class="card analytics-card card--supporting">
         <div class="card-header">
           <h3>📊 Analytics Overview</h3>
-          <span class="tag">This Week</span>
+          <span class="tag" id="analyticsWeekTag">This Week</span>
         </div>
         <div class="analytics-body">
           <div class="analytics-chart">
             <div class="chart-title">Tasks Completed</div>
             <div class="bar-chart">
-              <div class="bar" style="height:35%"></div>
-              <div class="bar" style="height:55%"></div>
-              <div class="bar" style="height:40%"></div>
-              <div class="bar" style="height:70%"></div>
-              <div class="bar" style="height:50%"></div>
-              <div class="bar" style="height:90%"></div>
-              <div class="bar" style="height:30%"></div>
+              <div class="bar" id="bar0" style="height:2%"></div>
+              <div class="bar" id="bar1" style="height:2%"></div>
+              <div class="bar" id="bar2" style="height:2%"></div>
+              <div class="bar" id="bar3" style="height:2%"></div>
+              <div class="bar" id="bar4" style="height:2%"></div>
+              <div class="bar" id="bar5" style="height:2%"></div>
+              <div class="bar" id="bar6" style="height:2%"></div>
             </div>
             <div class="bar-labels">
               <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
@@ -440,19 +463,19 @@
             <div class="chart-title">Category Breakdown</div>
             <div class="donut-wrap">
               <svg viewBox="0 0 42 42" class="donut">
-                <circle class="donut-seg" cx="21" cy="21" r="15.9" stroke="#7c6df2" stroke-dasharray="45 55" stroke-dashoffset="25"></circle>
-                <circle class="donut-seg" cx="21" cy="21" r="15.9" stroke="#4c8dff" stroke-dasharray="20 80" stroke-dashoffset="-20"></circle>
-                <circle class="donut-seg" cx="21" cy="21" r="15.9" stroke="#22c55e" stroke-dasharray="15 85" stroke-dashoffset="-40"></circle>
-                <circle class="donut-seg" cx="21" cy="21" r="15.9" stroke="#f59e0b" stroke-dasharray="10 90" stroke-dashoffset="-55"></circle>
-                <circle class="donut-seg" cx="21" cy="21" r="15.9" stroke="#f43f5e" stroke-dasharray="10 90" stroke-dashoffset="-65"></circle>
+                <circle class="donut-seg" id="segWork" cx="21" cy="21" r="15.9" stroke="#7c6df2" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
+                <circle class="donut-seg" id="segPersonal" cx="21" cy="21" r="15.9" stroke="#4c8dff" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
+                <circle class="donut-seg" id="segHealth" cx="21" cy="21" r="15.9" stroke="#22c55e" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
+                <circle class="donut-seg" id="segStudy" cx="21" cy="21" r="15.9" stroke="#f59e0b" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
+                <circle class="donut-seg" id="segOther" cx="21" cy="21" r="15.9" stroke="#f43f5e" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
               </svg>
             </div>
             <ul class="legend">
-              <li><i style="background:#7c6df2"></i>Work <span>45%</span></li>
-              <li><i style="background:#4c8dff"></i>Personal <span>20%</span></li>
-              <li><i style="background:#22c55e"></i>Health <span>15%</span></li>
-              <li><i style="background:#f59e0b"></i>Study <span>10%</span></li>
-              <li><i style="background:#f43f5e"></i>Other <span>10%</span></li>
+              <li><i style="background:#7c6df2"></i>Work <span id="legWork">0%</span></li>
+              <li><i style="background:#4c8dff"></i>Personal <span id="legPersonal">0%</span></li>
+              <li><i style="background:#22c55e"></i>Health <span id="legHealth">0%</span></li>
+              <li><i style="background:#f59e0b"></i>Study <span id="legStudy">0%</span></li>
+              <li><i style="background:#f43f5e"></i>Other <span id="legOther">0%</span></li>
             </ul>
           </div>
 
@@ -461,106 +484,5 @@
             <div class="score-ring">
               <svg viewBox="0 0 120 120">
                 <circle class="sring-bg" cx="60" cy="60" r="52"></circle>
-                <circle class="sring-fg" cx="60" cy="60" r="52"></circle>
-              </svg>
-              <div class="score-center">
-                <div class="score-val">86%</div>
-                <div class="score-caption">Excellent!</div>
-              </div>
-            </div>
-            <div class="score-sub">↑ 14% from last week</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card ai-card">
-        <div class="card-header">
-          <h3>✦ AI Assistant</h3>
-        </div>
-        <div class="ai-input-wrap">
-          <input type="text" placeholder="Ask me anything about your tasks, schedule, or productivity...">
-          <button class="ai-send">➤</button>
-        </div>
-        <div class="ai-chips">
-          <button class="chip">Plan my day</button>
-          <button class="chip">Optimize schedule</button>
-          <button class="chip">Focus suggestions</button>
-          <button class="chip">Weekly summary</button>
-        </div>
-      </div>
-
-      <div class="card shortcuts-card">
-        <div class="card-header">
-          <h3>⚡ Quick Shortcuts</h3>
-        </div>
-        <div class="shortcut-grid">
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--purple">📥</span>Inbox
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--green">📌</span>Today
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--blue">📆</span>Tomorrow
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--orange">🗂</span>This Week
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--pink">⭐</span>Priority
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--cyan">🗃</span>Archive
-          </button>
-        </div>
-      </div>
-    </section>
-
-  </main>
-</div>
-
-<!-- ADD / EDIT TASK MODAL -->
-<div class="modal-overlay" id="taskModalOverlay">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
-    <div class="modal-header">
-      <h3 id="taskModalTitle">Add Task</h3>
-      <button class="modal-close" id="taskModalClose" aria-label="Close">✕</button>
-    </div>
-    <form id="taskForm" class="modal-body">
-      <label class="field">
-        <span>Title</span>
-        <input type="text" id="taskTitleInput" placeholder="e.g. Write project proposal" required>
-      </label>
-      <label class="field">
-        <span>Details</span>
-        <input type="text" id="taskSubInput" placeholder="e.g. Draft outline and share for review">
-      </label>
-      <div class="field-row">
-        <label class="field">
-          <span>Priority</span>
-          <select id="taskPriorityInput">
-            <option value="high">High</option>
-            <option value="medium" selected>Medium</option>
-            <option value="low">Low</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Start</span>
-          <input type="time" id="taskStartInput" value="09:00">
-        </label>
-        <label class="field">
-          <span>End</span>
-          <input type="time" id="taskEndInput" value="10:00">
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="taskModalCancel">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Task</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<script src="script.js"></script>
-</body>
-</html>
+                <circle class="sring-fg" id="scoreRingFg" cx="60" cy="60" r="52"></circle>
+              
