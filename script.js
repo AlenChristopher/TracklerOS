@@ -2,35 +2,77 @@
 // Trackler Dashboard - Central Data Store & Rendering
 // ============================================================
 
-const STORAGE_KEY = 'trackler_tasks_v1';
+const OLD_STORAGE_KEY = 'trackler_tasks_v1'; // v1: tasks-only (kept for migration)
+const STORAGE_KEY = 'trackler_data_v2';       // v2: { tasks, completionLog }
 const USER_NAME = 'Alen';
 
 // ---- Seed data (matches original design) ----
 const DEFAULT_TASKS = [
-  { id: 't1', title: 'Finish Trackler UI', sub: 'Complete dashboard layout', priority: 'high', start: '09:00', end: '11:00', done: true },
-  { id: 't2', title: 'Code Task Manager', sub: 'Implement CRUD operations', priority: 'high', start: '11:30', end: '13:00', done: true },
-  { id: 't3', title: 'Design Database Schema', sub: 'Plan data structure', priority: 'medium', start: '14:00', end: '15:30', done: false },
-  { id: 't4', title: 'Write Documentation', sub: 'API and user guide', priority: 'low', start: '16:00', end: '17:30', done: false },
+  { id: 't1', title: 'Finish Trackler UI', sub: 'Complete dashboard layout', priority: 'high', category: 'Work', start: '09:00', end: '11:00', done: true },
+  { id: 't2', title: 'Code Task Manager', sub: 'Implement CRUD operations', priority: 'high', category: 'Work', start: '11:30', end: '13:00', done: true },
+  { id: 't3', title: 'Design Database Schema', sub: 'Plan data structure', priority: 'medium', category: 'Work', start: '14:00', end: '15:30', done: false },
+  { id: 't4', title: 'Write Documentation', sub: 'API and user guide', priority: 'low', category: 'Work', start: '16:00', end: '17:30', done: false },
 ];
 
 const TL_DOT_COLORS = ['blue', 'green', 'purple', 'orange', 'pink'];
 
-const state = {
-  tasks: loadTasks(),
-};
-
-function loadTasks() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) { /* ignore corrupt storage */ }
-  return DEFAULT_TASKS.slice();
+// 'YYYY-MM-DD' for a given date (local time, so it matches what the user sees)
+function dateStr(d) {
+  d = d || new Date();
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
-function saveTasks() {
+// For freshly-seeded tasks that start "done", log them as completed today so
+// analytics has real (if minimal) data to show on first load.
+function seedCompletionLog(tasks) {
+  const ds = dateStr();
+  return tasks.filter(t => t.done).map(t => ({ taskId: t.id, date: ds }));
+}
+
+function loadState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.tasks));
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        tasks: Array.isArray(parsed.tasks) ? parsed.tasks : DEFAULT_TASKS.slice(),
+        completionLog: Array.isArray(parsed.completionLog) ? parsed.completionLog : [],
+      };
+    }
+  } catch (e) { /* ignore corrupt storage */ }
+
+  // Migrate from the old tasks-only storage format if present
+  try {
+    const oldRaw = localStorage.getItem(OLD_STORAGE_KEY);
+    if (oldRaw) {
+      const tasks = JSON.parse(oldRaw).map(t => ({ category: 'Work', ...t }));
+      return { tasks, completionLog: seedCompletionLog(tasks) };
+    }
+  } catch (e) { /* ignore corrupt storage */ }
+
+  return { tasks: DEFAULT_TASKS.slice(), completionLog: seedCompletionLog(DEFAULT_TASKS) };
+}
+
+const state = loadState();
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks: state.tasks, completionLog: state.completionLog }));
   } catch (e) { /* storage unavailable, continue in-memory only */ }
+}
+
+// Records or un-records a completion event for today, used to drive real
+// (non-hardcoded) analytics like the weekly bar chart and productivity score.
+function logCompletion(taskId, done) {
+  const ds = dateStr();
+  if (done) {
+    if (!state.completionLog.some(e => e.taskId === taskId && e.date === ds)) {
+      state.completionLog.push({ taskId, date: ds });
+    }
+  } else {
+    state.completionLog = state.completionLog.filter(e => !(e.taskId === taskId && e.date === ds));
+  }
 }
 
 function uid() {
@@ -188,6 +230,7 @@ function renderAll() {
   renderTaskList();
   renderTimeline();
   renderStats();
+  renderAnalytics();
 }
 
 function escapeHtml(str) {
@@ -204,27 +247,30 @@ function toggleTask(id) {
   const task = state.tasks.find(t => t.id === id);
   if (!task) return;
   task.done = !task.done;
-  saveTasks();
+  logCompletion(id, task.done);
+  saveState();
   renderAll();
 }
 
 function deleteTask(id) {
   state.tasks = state.tasks.filter(t => t.id !== id);
-  saveTasks();
+  state.completionLog = state.completionLog.filter(e => e.taskId !== id);
+  saveState();
   renderAll();
 }
 
-function addTask({ title, sub, priority, start, end }) {
+function addTask({ title, sub, priority, category, start, end }) {
   state.tasks.push({
     id: uid(),
     title: title.trim(),
     sub: (sub || '').trim(),
     priority,
+    category: category || 'Work',
     start,
     end,
     done: false,
   });
-  saveTasks();
+  saveState();
   renderAll();
 }
 
@@ -400,6 +446,117 @@ function shiftWeek(delta) {
 }
 
 // ============================================================
+// ANALYTICS (real data: task categories + completion history)
+// ============================================================
+
+const CATEGORY_META = {
+  Work:     { segId: 'segWork',     legId: 'legWork' },
+  Personal: { segId: 'segPersonal', legId: 'legPersonal' },
+  Health:   { segId: 'segHealth',   legId: 'legHealth' },
+  Study:    { segId: 'segStudy',    legId: 'legStudy' },
+  Other:    { segId: 'segOther',    legId: 'legOther' },
+};
+const CATEGORY_ORDER = ['Work', 'Personal', 'Health', 'Study', 'Other'];
+
+// Bar chart: real count of tasks completed each day of the current week (Mon-Sun)
+function renderAnalyticsBars() {
+  const weekStart = startOfWeek(new Date());
+  const counts = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    const ds = dateStr(d);
+    counts.push(state.completionLog.filter(e => e.date === ds).length);
+  }
+  const max = Math.max(...counts, 1);
+  counts.forEach((c, i) => {
+    const bar = document.getElementById('bar' + i);
+    if (!bar) return;
+    const heightPct = c === 0 ? 2 : Math.max(8, Math.round((c / max) * 100));
+    bar.style.height = heightPct + '%';
+    bar.title = `${c} task${c === 1 ? '' : 's'} completed`;
+  });
+}
+
+// Donut: real breakdown of all current tasks by category
+function renderCategoryDonut() {
+  const total = state.tasks.length;
+  const counts = { Work: 0, Personal: 0, Health: 0, Study: 0, Other: 0 };
+  state.tasks.forEach(t => {
+    const cat = counts.hasOwnProperty(t.category) ? t.category : 'Other';
+    counts[cat]++;
+  });
+
+  let cumulative = 0;
+  CATEGORY_ORDER.forEach(cat => {
+    const count = counts[cat];
+    const pct = total === 0 ? 0 : Math.round((count / total) * 100);
+    const meta = CATEGORY_META[cat];
+    const seg = document.getElementById(meta.segId);
+    const leg = document.getElementById(meta.legId);
+    if (leg) leg.textContent = pct + '%';
+    if (seg) {
+      seg.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
+      seg.setAttribute('stroke-dashoffset', 25 - cumulative);
+    }
+    cumulative += pct;
+  });
+}
+
+// Productivity score: today's real completion %, with a week-over-week comparison
+// derived from the completion log (not a hardcoded number)
+function renderProductivityScore() {
+  const { pct } = getStats();
+
+  const ringFg = document.getElementById('scoreRingFg');
+  const scoreVal = document.getElementById('scoreVal');
+  const scoreCaption = document.getElementById('scoreCaption');
+  const scoreSub = document.getElementById('scoreSub');
+
+  setRing(ringFg, pct, 326.7);
+  if (scoreVal) scoreVal.textContent = pct + '%';
+
+  let caption;
+  if (pct >= 80) caption = 'Excellent!';
+  else if (pct >= 50) caption = 'Good pace';
+  else if (pct > 0) caption = 'Keep going';
+  else caption = 'Just starting';
+  if (scoreCaption) scoreCaption.textContent = caption;
+
+  const weekStart = startOfWeek(new Date());
+  const lastWeekStart = new Date(weekStart);
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+  const lastWeekEnd = new Date(weekStart);
+  lastWeekEnd.setDate(lastWeekEnd.getDate() - 1);
+  lastWeekEnd.setHours(23, 59, 59, 999);
+
+  const thisWeekCount = state.completionLog.filter(e => new Date(e.date + 'T00:00:00') >= weekStart).length;
+  const lastWeekCount = state.completionLog.filter(e => {
+    const d = new Date(e.date + 'T00:00:00');
+    return d >= lastWeekStart && d <= lastWeekEnd;
+  }).length;
+
+  let subText;
+  if (lastWeekCount === 0 && thisWeekCount === 0) {
+    subText = 'No completions logged yet';
+  } else if (lastWeekCount === 0) {
+    subText = `${thisWeekCount} completed this week`;
+  } else {
+    const delta = Math.round(((thisWeekCount - lastWeekCount) / lastWeekCount) * 100);
+    if (delta > 0) subText = `↑ ${delta}% from last week`;
+    else if (delta < 0) subText = `↓ ${Math.abs(delta)}% from last week`;
+    else subText = 'Same as last week';
+  }
+  if (scoreSub) scoreSub.textContent = subText;
+}
+
+function renderAnalytics() {
+  renderAnalyticsBars();
+  renderCategoryDonut();
+  renderProductivityScore();
+}
+
+// ============================================================
 // EVENT WIRING
 // ============================================================
 
@@ -465,10 +622,12 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const title = document.getElementById('taskTitleInput').value;
         if (!title.trim()) return;
+        const categoryEl = document.getElementById('taskCategoryInput');
         addTask({
           title,
           sub: document.getElementById('taskSubInput').value,
           priority: document.getElementById('taskPriorityInput').value,
+          category: categoryEl ? categoryEl.value : 'Work',
           start: document.getElementById('taskStartInput').value || '09:00',
           end: document.getElementById('taskEndInput').value || '10:00',
         });
