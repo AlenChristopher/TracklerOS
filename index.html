@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Trackler - Personal Assistant OS</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app3">
+<div class="app3" id="app">
 
-  <!-- SIDEBAR -->
+  <!-- SIDEBAR (desktop/tablet) -->
   <aside class="sidebar3">
     <div class="brand3">
       <div class="brand3-ring"></div>
@@ -19,34 +19,17 @@
       </div>
     </div>
 
-    <a class="nav3-today active" href="#">
-      <span class="nav3-icon">🏠</span> Today
-    </a>
+    <nav class="nav3-main" aria-label="Primary">
+      <a class="nav3-item active" href="#" data-view="today"><span class="nav3-icon">🏠</span> Today</a>
+      <a class="nav3-item" href="#" data-view="schedule"><span class="nav3-icon">📅</span> Schedule</a>
+      <a class="nav3-item" href="#" data-view="projects"><span class="nav3-icon">🗂</span> Projects</a>
+      <a class="nav3-item" href="#" data-view="insights"><span class="nav3-icon">📊</span> Insights</a>
+      <a class="nav3-item" href="#" data-view="settings"><span class="nav3-icon">⚙</span> Settings</a>
+    </nav>
 
-    <div class="nav3-section">
-      <div class="nav3-label">Plan</div>
-      <a class="nav3-item" href="#"><span class="nav3-icon">📅</span> Calendar</a>
-      <a class="nav3-item" href="#"><span class="nav3-icon">📋</span> Planner</a>
-      <a class="nav3-item" href="#"><span class="nav3-icon">🗂</span> Projects</a>
-      <a class="nav3-item" href="#"><span class="nav3-icon">☑</span> Tasks</a>
-    </div>
-
-    <div class="nav3-section">
-      <div class="nav3-label">Focus</div>
-      <a class="nav3-item" href="#"><span class="nav3-icon">◎</span> Focus Mode</a>
-      <a class="nav3-item" href="#"><span class="nav3-icon">▶</span> Deep Work</a>
-    </div>
-
-    <div class="nav3-section">
-      <div class="nav3-label">Insights</div>
-      <a class="nav3-item" href="#"><span class="nav3-icon">⚙</span> Insights</a>
-      <a class="nav3-item" href="#"><span class="nav3-icon">📊</span> Analytics</a>
-    </div>
-
-    <div class="nav3-section">
-      <div class="nav3-label">AI</div>
-      <a class="nav3-item nav3-ai" href="#" id="navAssistant"><span class="nav3-icon">✦</span> Assistant <span class="ai-dot"></span></a>
-    </div>
+    <button class="nav3-ai" id="navAssistant" type="button">
+      <span class="nav3-icon">✦</span> Assistant <span class="ai-dot" id="aiDot"></span>
+    </button>
 
     <div class="sidebar3-spacer"></div>
 
@@ -60,13 +43,13 @@
     <div class="sidebar3-icons">
       <button class="icon-btn" id="lightModeBtn" aria-label="Light mode">☀️</button>
       <button class="icon-btn" id="darkModeBtn" aria-label="Dark mode">🌙</button>
-      <button class="icon-btn" aria-label="Settings">⚙</button>
+      <button class="icon-btn" id="reducedMotionBtn" aria-label="Toggle reduced motion" aria-pressed="false">◐</button>
       <button class="icon-btn" id="sidebarCollapseBtn" aria-label="Collapse sidebar">«</button>
     </div>
   </aside>
 
-  <!-- MAIN -->
-  <main class="main3">
+  <!-- MAIN: TODAY -->
+  <main class="main3" id="view-today" data-view-panel="today">
 
     <header class="top3">
       <div class="greeting3">
@@ -89,54 +72,26 @@
       </div>
     </header>
 
-    <section class="stats-bar">
-      <div class="focus-block">
-        <div class="stat-label-row"><span class="stat-ico">⭐</span>Focus Time</div>
-        <div class="focus-value" id="focusTimeVal">0h 0m</div>
-        <div class="stat-sub">of deep work</div>
-        <svg class="sparkline" viewBox="0 0 140 40" preserveAspectRatio="none">
-          <polyline points="0,32 20,28 40,30 60,22 80,24 100,14 120,10 140,6" fill="none" stroke="url(#sparkGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <defs>
-            <linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="#8b7cf6"/>
-              <stop offset="100%" stop-color="#4c7dff"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="focus-delta" id="focusDelta">Plan your day to see trends</div>
+    <!-- DAILY BRIEFING (replaces dashboard metrics) -->
+    <section class="briefing-card">
+      <div class="briefing-main">
+        <div class="briefing-kicker">Daily Briefing</div>
+        <p class="briefing-text" id="briefingText">Loading your day…</p>
       </div>
+      <button class="btn btn-primary quick-focus-btn" id="quickFocusBtn">
+        <span class="qf-ico">▶</span> Quick Start Focus
+      </button>
+    </section>
 
-      <div class="stat-divider"></div>
-
-      <div class="stat-block">
-        <div class="stat-label-row"><span class="stat-ico">☆</span>Priorities</div>
-        <div class="stat-big" id="statPriorities">0</div>
-        <div class="stat-sub">High priority</div>
+    <!-- SINGLE AI RECOMMENDATION -->
+    <section class="recommendation-card" id="recommendationCard">
+      <span class="rec-spark">✦</span>
+      <div class="rec-text">
+        <strong id="recTitle">You're all set.</strong>
+        <p id="recBody">No changes needed right now — I'll speak up if something needs your attention.</p>
       </div>
-
-      <div class="stat-divider"></div>
-
-      <div class="stat-block">
-        <div class="stat-label-row"><span class="stat-ico">🗓</span>Meetings</div>
-        <div class="stat-big" id="statMeetings">0</div>
-        <div class="stat-sub">Today</div>
-      </div>
-
-      <div class="stat-divider"></div>
-
-      <div class="stat-block">
-        <div class="stat-label-row"><span class="stat-ico">☰</span>Tasks</div>
-        <div class="stat-big" id="statTasksLeft">0</div>
-        <div class="stat-sub">To complete</div>
-      </div>
-
-      <div class="stat-divider"></div>
-
-      <div class="stat-block">
-        <div class="stat-label-row"><span class="stat-ico">✓</span>On Track</div>
-        <div class="stat-big stat-big--ontrack" id="statOnTrack">Yes</div>
-        <div class="stat-sub" id="statOnTrackSub">You're ahead! ✅</div>
-      </div>
+      <div class="rec-actions" id="recActions"></div>
+      <button class="rec-close" id="recClose" aria-label="Dismiss recommendation">✕</button>
     </section>
 
     <section class="day-card">
@@ -148,7 +103,6 @@
             <input type="checkbox" id="autoScheduleToggle">
             <span class="slider"></span>
           </label>
-          <button class="icon-btn small" aria-label="Day settings">⚙</button>
         </div>
       </div>
 
@@ -158,20 +112,31 @@
         <span class="plus-circle">+</span> Add Task
       </button>
 
-      <div class="insight-banner" id="insightBanner">
-        <span class="insight-spark">✦</span>
-        <div class="insight-text">
-          <strong id="insightTitle">You usually do your best work before 12 PM.</strong>
-          <p id="insightBody">2 of your deep work tasks are in the morning. Great choice!</p>
-        </div>
-        <button class="btn btn-ghost small" id="viewInsightsBtn">View Insights</button>
-        <button class="insight-close" id="insightClose" aria-label="Dismiss">✕</button>
-      </div>
+      <button class="completed-toggle hidden" id="completedToggle" type="button"></button>
+      <ul class="completed-list hidden" id="completedList"></ul>
     </section>
   </main>
 
+  <!-- STUB VIEWS: Schedule / Projects / Insights / Settings -->
+  <main class="main3 stub-view hidden" id="view-schedule" data-view-panel="schedule">
+    <header class="top3"><div class="greeting3"><h1>Schedule</h1><p>Week and month views of your timeline.</p></div></header>
+    <section class="stub-card"><span class="stub-ico">📅</span><h2>Schedule is on its way</h2><p>This is where week/month planning will live. Ask the Assistant to schedule something and it'll show up on Today.</p></section>
+  </main>
+  <main class="main3 stub-view hidden" id="view-projects" data-view-panel="projects">
+    <header class="top3"><div class="greeting3"><h1>Projects</h1><p>Group tasks into projects and track progress.</p></div></header>
+    <section class="stub-card"><span class="stub-ico">🗂</span><h2>Projects is on its way</h2><p>Organize your tasks into projects here once this view is built.</p></section>
+  </main>
+  <main class="main3 stub-view hidden" id="view-insights" data-view-panel="insights">
+    <header class="top3"><div class="greeting3"><h1>Insights</h1><p>Analytics and trends live here — kept out of Today so it stays calm.</p></div></header>
+    <section class="stub-card"><span class="stub-ico">📊</span><h2>Insights is on its way</h2><p>Focus-time trends, streaks, and completion analytics will appear here.</p></section>
+  </main>
+  <main class="main3 stub-view hidden" id="view-settings" data-view-panel="settings">
+    <header class="top3"><div class="greeting3"><h1>Settings</h1><p>Manage your preferences.</p></div></header>
+    <section class="stub-card"><span class="stub-ico">⚙</span><h2>Settings is on its way</h2><p>Theme, motion, and account preferences are currently in the sidebar — a full settings screen is coming.</p></section>
+  </main>
+
   <!-- ASSISTANT PANEL -->
-  <aside class="assistant-panel" id="assistantPanel">
+  <aside class="assistant-panel" id="assistantPanel" data-view-panel="assistant">
     <div class="assistant-header">
       <div class="assistant-title"><span class="spark">✦</span> Trackler Assistant</div>
       <div class="assistant-header-actions">
@@ -181,22 +146,13 @@
     </div>
 
     <div class="assistant-orb-wrap">
-      <div class="assistant-orb" id="assistantOrb"></div>
-      <div class="assistant-status" id="assistantStatus">Ready</div>
+      <div class="assistant-orb" id="assistantOrb" data-state="idle"></div>
+      <div class="assistant-status" id="assistantStatus">Idle</div>
       <div class="assistant-status-sub" id="assistantStatusSub">Tap the mic or type below</div>
       <div class="waveform" id="waveform">
         <span></span><span></span><span></span><span></span><span></span>
         <span></span><span></span><span></span><span></span><span></span>
         <span></span><span></span><span></span><span></span><span></span>
-      </div>
-    </div>
-
-    <div class="suggested-label">Suggested for you</div>
-    <div class="suggestion-card" id="suggestionCard">
-      <p>I found a better time for <strong id="suggestionTarget">Database Schema Design</strong>. Shall I move it to <strong id="suggestionTime">2:00 PM</strong>?</p>
-      <div class="suggestion-actions">
-        <button class="btn btn-primary small" id="suggestionMove">Move it</button>
-        <button class="btn btn-ghost small" id="suggestionLater">Maybe later</button>
       </div>
     </div>
 
@@ -215,6 +171,15 @@
   </aside>
 
 </div>
+
+<!-- MOBILE BOTTOM NAV (assistant-first) -->
+<nav class="mobile-tabbar" aria-label="Mobile navigation">
+  <button class="mtab active" data-view="today" aria-label="Today"><span>🏠</span>Today</button>
+  <button class="mtab" data-view="schedule" aria-label="Schedule"><span>📅</span>Schedule</button>
+  <button class="mtab mtab-assistant" data-view="assistant" aria-label="Assistant"><span>✦</span>Assistant</button>
+  <button class="mtab" data-view="projects" aria-label="Projects"><span>🗂</span>Projects</button>
+  <button class="mtab" data-view="insights" aria-label="Insights"><span>📊</span>Insights</button>
+</nav>
 
 <!-- ADD / EDIT TASK MODAL -->
 <div class="modal-overlay" id="taskModalOverlay">
@@ -235,6 +200,7 @@
             <option value="task" selected>Task</option>
             <option value="meeting">Meeting</option>
             <option value="break">Break</option>
+            <option value="focus">Focus Block</option>
           </select>
         </label>
         <label class="field">
@@ -264,6 +230,8 @@
     </form>
   </div>
 </div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="script.js"></script>
 </body>
