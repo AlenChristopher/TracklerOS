@@ -3,550 +3,224 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trackler - Personal OS</title>
+<title>Trackler - Personal Assistant OS</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app">
+<div class="app3">
 
   <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-logo">T</div>
-      <div class="brand-text">
-        <div class="brand-name">Trackler</div>
-        <div class="brand-sub">Personal OS</div>
+  <aside class="sidebar3">
+    <div class="brand3">
+      <div class="brand3-ring"></div>
+      <div class="brand3-text">
+        <div class="brand3-name">trackler</div>
+        <div class="brand3-sub">Personal Assistant OS</div>
       </div>
     </div>
 
-    <nav class="nav">
-      <div class="nav-group">
-        <div class="nav-group-label">Today</div>
-        <a class="nav-item active" href="#">
-          <span class="nav-icon">▦</span> Dashboard
-        </a>
-      </div>
+    <a class="nav3-today active" href="#">
+      <span class="nav3-icon">🏠</span> Today
+    </a>
 
-      <div class="nav-group">
-        <div class="nav-group-label">Schedule</div>
-        <a class="nav-item" href="#">
-          <span class="nav-icon">🗓</span> Planner
-        </a>
-        <a class="nav-item" href="#">
-          <span class="nav-icon">📅</span> Calendar
-        </a>
-        <a class="nav-item" href="#">
-          <span class="nav-icon">☑</span> Tasks
-        </a>
-      </div>
+    <div class="nav3-section">
+      <div class="nav3-label">Plan</div>
+      <a class="nav3-item" href="#"><span class="nav3-icon">📅</span> Calendar</a>
+      <a class="nav3-item" href="#"><span class="nav3-icon">📋</span> Planner</a>
+      <a class="nav3-item" href="#"><span class="nav3-icon">🗂</span> Projects</a>
+      <a class="nav3-item" href="#"><span class="nav3-icon">☑</span> Tasks</a>
+    </div>
 
-      <div class="nav-group">
-        <div class="nav-group-label">Focus</div>
-        <a class="nav-item" href="#">
-          <span class="nav-icon">🔥</span> Habits
-        </a>
-        <a class="nav-item" href="#">
-          <span class="nav-icon">◎</span> Focus Mode
-        </a>
-      </div>
+    <div class="nav3-section">
+      <div class="nav3-label">Focus</div>
+      <a class="nav3-item" href="#"><span class="nav3-icon">◎</span> Focus Mode</a>
+      <a class="nav3-item" href="#"><span class="nav3-icon">▶</span> Deep Work</a>
+    </div>
 
-      <div class="nav-group">
-        <div class="nav-group-label">Insights</div>
-        <a class="nav-item" href="#">
-          <span class="nav-icon">📊</span> Analytics
-        </a>
-      </div>
+    <div class="nav3-section">
+      <div class="nav3-label">Insights</div>
+      <a class="nav3-item" href="#"><span class="nav3-icon">⚙</span> Insights</a>
+      <a class="nav3-item" href="#"><span class="nav3-icon">📊</span> Analytics</a>
+    </div>
 
-      <div class="nav-group">
-        <div class="nav-group-label">AI</div>
-        <a class="nav-item" href="#">
-          <span class="nav-icon">✦</span> AI Assistant
-        </a>
-      </div>
+    <div class="nav3-section">
+      <div class="nav3-label">AI</div>
+      <a class="nav3-item nav3-ai" href="#" id="navAssistant"><span class="nav3-icon">✦</span> Assistant <span class="ai-dot"></span></a>
+    </div>
 
-      <div class="nav-group nav-group--settings">
-        <a class="nav-item" href="#">
-          <span class="nav-icon">⚙</span> Settings
-        </a>
-      </div>
-    </nav>
+    <div class="sidebar3-spacer"></div>
 
-
-    <div class="sidebar-footer">
-      <div class="today-progress-label">Today's Progress</div>
-      <div class="today-progress-ring">
-        <svg viewBox="0 0 120 120">
-          <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
-          <circle class="ring-fg" id="sidebarRingFg" cx="60" cy="60" r="52"></circle>
-        </svg>
-        <div class="ring-center">
-          <div class="ring-pct" id="sidebarRingPct">68%</div>
-          <div class="ring-caption">Complete</div>
-        </div>
+    <div class="user-card">
+      <div class="user-avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alen <span class="pro-badge">Pro Plan</span></div>
+        <div class="user-streak" id="userStreak">Productive streak: 7 days</div>
       </div>
-      <div class="footer-msg" id="footerMsg">Great job! Keep going 🎉</div>
-      <div class="footer-bar">
-        <div class="footer-bar-fill" id="footerBarFill"></div>
-      </div>
-      <div class="footer-sub" id="footerSub">12 of 18 tasks completed</div>
+    </div>
+    <div class="sidebar3-icons">
+      <button class="icon-btn" id="lightModeBtn" aria-label="Light mode">☀️</button>
+      <button class="icon-btn" id="darkModeBtn" aria-label="Dark mode">🌙</button>
+      <button class="icon-btn" aria-label="Settings">⚙</button>
+      <button class="icon-btn" id="sidebarCollapseBtn" aria-label="Collapse sidebar">«</button>
     </div>
   </aside>
 
   <!-- MAIN -->
-  <main class="main">
+  <main class="main3">
 
-    <!-- TOP BAR -->
-    <header class="topbar">
-      <div class="greeting">
-        <h1 id="greetingHeading">Good Morning, Alen! <span class="wave" id="greetingWave">👋</span></h1>
-        <p><span id="greetingDate">Wednesday, May 21, 2025</span><span class="date-sep"> · </span><span id="greetingTime">9:00 AM</span></p>
+    <header class="top3">
+      <div class="greeting3">
+        <h1 id="greetingHeading">Good Morning, Alen <span class="wave">👋</span></h1>
+        <p id="greetingSub">I've prepared everything for a productive day.</p>
       </div>
 
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="text" placeholder="Search tasks, habits, notes...">
+      <div class="search3">
+        <span class="search3-icon">🔍</span>
+        <input type="text" placeholder="Search anything..." id="searchInput">
         <span class="kbd">⌘K</span>
       </div>
 
-      <div class="top-actions">
-        <button class="icon-btn" aria-label="mic">🎙</button>
-        <button class="icon-btn" aria-label="notifications">
+      <div class="top3-actions">
+        <button class="icon-btn round" id="micBtn" aria-label="Voice input">🎙</button>
+        <button class="icon-btn round" aria-label="Notifications">
           🔔<span class="badge">3</span>
         </button>
-        <button class="icon-btn" aria-label="theme">🌙</button>
-        <button class="btn btn-outline">✦ Auto Plan</button>
-        <button class="btn btn-primary open-task-modal">+ New Task</button>
+        <button class="icon-btn round" id="themeBtn" aria-label="Toggle theme">☀️</button>
       </div>
     </header>
 
-    <!-- STAT CARDS -->
-    <section class="stats-row">
-      <div class="stat-card">
-        <div class="stat-icon stat-icon--blue">✓</div>
-        <div class="stat-body">
-          <div class="stat-label">Total Tasks</div>
-          <div class="stat-value" id="statTotal">18</div>
-        </div>
-        <div class="stat-foot">View all tasks →</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon stat-icon--green">✓</div>
-        <div class="stat-body">
-          <div class="stat-label">Completed</div>
-          <div class="stat-value" id="statCompleted">12</div>
-        </div>
-        <div class="stat-foot" id="statCompletedFoot">This is amazing! 🎉</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon stat-icon--orange">⏱</div>
-        <div class="stat-body">
-          <div class="stat-label">Pending</div>
-          <div class="stat-value" id="statPending">6</div>
-        </div>
-        <div class="stat-foot" id="statPendingFoot">Keep it up! 💪</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon stat-icon--purple">📈</div>
-        <div class="stat-body">
-          <div class="stat-label">Completion</div>
-          <div class="stat-value" id="statCompletion">68%</div>
-        </div>
-        <div class="stat-foot stat-foot--up" id="statCompletionFoot">↑ 12% from yesterday</div>
-      </div>
-    </section>
-
-    <!-- QUICK ACTIONS -->
-    <section class="quick-actions">
-      <button class="qa-btn open-task-modal">+ Add Task</button>
-      <button class="qa-btn">+ Add Habit</button>
-      <button class="qa-btn">📋 Planner</button>
-      <button class="qa-btn">📅 Calendar</button>
-      <button class="qa-btn">📊 Analytics</button>
-      <button class="qa-btn">💬 Ask AI</button>
-    </section>
-
-    <!-- HERO + TOP RIGHT WIDGETS -->
-    <section class="grid-top">
-
-      <div class="card hero-card card--hero">
-        <div class="hero-badge">✦ AI Productivity OS</div>
-        <h2 class="hero-title">Today's Mission</h2>
-        <div class="hero-subtitle">Finish building Trackler OS</div>
-        <p class="hero-desc">Stay focused. Complete your highest-priority work first, maintain healthy habits, and let AI optimize your schedule.</p>
-        <div class="hero-actions">
-          <button class="btn btn-primary">▶ Start Focus Session</button>
-          <button class="btn btn-ghost">📄 Review Day</button>
-        </div>
-        <div class="hero-ring">
-          <svg viewBox="0 0 140 140">
-            <circle class="hring-bg" cx="70" cy="70" r="60"></circle>
-            <circle class="hring-fg" id="heroRingFg" cx="70" cy="70" r="60"></circle>
-          </svg>
-          <div class="hero-ring-center">
-            <div class="hero-ring-pct" id="heroRingPct">68%</div>
-          </div>
-        </div>
-        <div class="hero-ring-caption">Daily Completion</div>
+    <section class="stats-bar">
+      <div class="focus-block">
+        <div class="stat-label-row"><span class="stat-ico">⭐</span>Focus Time</div>
+        <div class="focus-value" id="focusTimeVal">0h 0m</div>
+        <div class="stat-sub">of deep work</div>
+        <svg class="sparkline" viewBox="0 0 140 40" preserveAspectRatio="none">
+          <polyline points="0,32 20,28 40,30 60,22 80,24 100,14 120,10 140,6" fill="none" stroke="url(#sparkGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#8b7cf6"/>
+              <stop offset="100%" stop-color="#4c7dff"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="focus-delta" id="focusDelta">Plan your day to see trends</div>
       </div>
 
-      <div class="card tasks-card card--primary">
-        <div class="card-header">
-          <h3>✅ Today's Tasks</h3>
-          <a class="card-link" href="#">View All</a>
-        </div>
-        <ul class="task-list" id="taskList"></ul>
-        <a class="add-link open-task-modal" href="#">+ Add Task</a>
+      <div class="stat-divider"></div>
+
+      <div class="stat-block">
+        <div class="stat-label-row"><span class="stat-ico">☆</span>Priorities</div>
+        <div class="stat-big" id="statPriorities">0</div>
+        <div class="stat-sub">High priority</div>
       </div>
 
-      <div class="card timeline-card card--primary">
-        <div class="card-header">
-          <h3>🕐 Timeline</h3>
-        </div>
-        <ul class="timeline-list" id="timelineList"></ul>
-        <a class="add-link" href="#">+ Add Time Block</a>
+      <div class="stat-divider"></div>
+
+      <div class="stat-block">
+        <div class="stat-label-row"><span class="stat-ico">🗓</span>Meetings</div>
+        <div class="stat-big" id="statMeetings">0</div>
+        <div class="stat-sub">Today</div>
       </div>
 
-      <div class="card calendar-card card--secondary">
-        <div class="card-header">
-          <h3>📅 Calendar</h3>
-          <div class="cal-nav">
-            <button class="cal-arrow" id="calPrev" aria-label="Previous month">‹</button>
-            <span id="calLabel">May 2025</span>
-            <button class="cal-arrow" id="calNext" aria-label="Next month">›</button>
-          </div>
-        </div>
-        <div class="cal-grid">
-          <div class="cal-dow">Mon</div><div class="cal-dow">Tue</div><div class="cal-dow">Wed</div>
-          <div class="cal-dow">Thu</div><div class="cal-dow">Fri</div><div class="cal-dow">Sat</div><div class="cal-dow">Sun</div>
-          <div class="cal-days" id="calDays" style="display:contents;"></div>
-        </div>
+      <div class="stat-divider"></div>
+
+      <div class="stat-block">
+        <div class="stat-label-row"><span class="stat-ico">☰</span>Tasks</div>
+        <div class="stat-big" id="statTasksLeft">0</div>
+        <div class="stat-sub">To complete</div>
       </div>
 
-      <div class="card weekly-card card--secondary">
-        <div class="card-header">
-          <h3>📆 Weekly Planner</h3>
-          <div class="cal-nav">
-            <button class="cal-arrow" id="weekPrev" aria-label="Previous week">‹</button>
-            <span id="weekLabel">May 19 - May 25</span>
-            <button class="cal-arrow" id="weekNext" aria-label="Next week">›</button>
-          </div>
-        </div>
-        <div class="weekly-grid">
-          <div class="wk-col">
-            <div class="wk-head" id="wkHead0" data-dow="Mon">Mon<br><span>19</span></div>
-            <div class="wk-block wk-block--purple">UI Design<br><span>9-11am</span></div>
-            <div class="wk-block wk-block--blue">Docs<br><span>2-4pm</span></div>
-          </div>
-          <div class="wk-col">
-            <div class="wk-head" id="wkHead1" data-dow="Tue">Tue<br><span>20</span></div>
-            <div class="wk-block wk-block--blue">Code<br><span>9-11am</span></div>
-            <div class="wk-block wk-block--purple">DB Design<br><span>2-4pm</span></div>
-          </div>
-          <div class="wk-col">
-            <div class="wk-head" id="wkHead2" data-dow="Wed">Wed<br><span>21</span></div>
-            <div class="wk-block wk-block--purple">UI Design<br><span>9-11am</span></div>
-            <div class="wk-block wk-block--green">Task Mgr<br><span>2-4pm</span></div>
-          </div>
-          <div class="wk-col">
-            <div class="wk-head" id="wkHead3" data-dow="Thu">Thu<br><span>22</span></div>
-            <div class="wk-block wk-block--orange">Meeting<br><span>10am-11am</span></div>
-            <div class="wk-block wk-block--pink">Testing<br><span>2-4pm</span></div>
-          </div>
-          <div class="wk-col">
-            <div class="wk-head" id="wkHead4" data-dow="Fri">Fri<br><span>23</span></div>
-            <div class="wk-block wk-block--blue">Review<br><span>9-11am</span></div>
-            <div class="wk-block wk-block--purple">Deploy<br><span>2-4pm</span></div>
-          </div>
-          <div class="wk-col">
-            <div class="wk-head" id="wkHead5" data-dow="Sat">Sat<br><span>24</span></div>
-          </div>
-          <div class="wk-col">
-            <div class="wk-head" id="wkHead6" data-dow="Sun">Sun<br><span>25</span></div>
-            <div class="wk-block wk-block--green">Workout<br><span>8am</span></div>
-            <div class="wk-block wk-block--blue">Plan<br><span>10am</span></div>
-          </div>
-        </div>
-        <a class="add-link" href="#">+ Add Block</a>
+      <div class="stat-divider"></div>
+
+      <div class="stat-block">
+        <div class="stat-label-row"><span class="stat-ico">✓</span>On Track</div>
+        <div class="stat-big stat-big--ontrack" id="statOnTrack">Yes</div>
+        <div class="stat-sub" id="statOnTrackSub">You're ahead! ✅</div>
       </div>
     </section>
 
-    <!-- MIDDLE ROW -->
-    <section class="grid-mid">
-
-      <div class="card habit-card card--supporting">
-        <div class="card-header">
-          <h3>🔥 Habit Tracker</h3>
-          <a class="card-link" href="#">+ Add Habit</a>
-        </div>
-        <ul class="habit-list">
-          <li>
-            <span class="habit-icon">🏃</span>
-            <span class="habit-name">Morning Exercise</span>
-            <span class="dots">
-              <i class="dot on"></i><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i>
-              <i class="dot on"></i><i class="dot on"></i><i class="dot on"></i>
-            </span>
-            <span class="streak">7 day streak 🔥</span>
-          </li>
-          <li>
-            <span class="habit-icon">🧘</span>
-            <span class="habit-name">Meditation</span>
-            <span class="dots">
-              <i class="dot on"></i><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i>
-              <i class="dot on"></i><i class="dot off"></i><i class="dot off"></i>
-            </span>
-            <span class="streak">5 day streak 🔥</span>
-          </li>
-          <li>
-            <span class="habit-icon">📖</span>
-            <span class="habit-name">Read Books</span>
-            <span class="dots">
-              <i class="dot on"></i><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i>
-              <i class="dot on"></i><i class="dot on"></i><i class="dot on"></i>
-            </span>
-            <span class="streak">12 day streak 🔥</span>
-          </li>
-          <li>
-            <span class="habit-icon">💧</span>
-            <span class="habit-name">Drink Water</span>
-            <span class="dots">
-              <i class="dot on"></i><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i>
-              <i class="dot on"></i><i class="dot on"></i><i class="dot off"></i>
-            </span>
-            <span class="streak">8 day streak 🔥</span>
-          </li>
-        </ul>
-      </div>
-
-      <div class="card focus-card card--primary">
-        <div class="card-header">
-          <h3>🎯 Focus Mode</h3>
-        </div>
-        <div class="focus-ring">
-          <svg viewBox="0 0 140 140">
-            <circle class="fring-bg" cx="70" cy="70" r="60"></circle>
-            <circle class="fring-fg" cx="70" cy="70" r="60"></circle>
-          </svg>
-          <div class="focus-ring-center">
-            <div class="focus-time">25:00</div>
-            <div class="focus-caption">Ready to focus!</div>
-          </div>
-        </div>
-        <div class="focus-controls">
-          <button class="focus-btn small">↺</button>
-          <button class="focus-btn play">▶</button>
-          <button class="focus-btn small">⏸</button>
+    <section class="day-card">
+      <div class="day-card-header">
+        <h2>Your Day</h2>
+        <div class="day-controls">
+          <span class="auto-label">Auto-schedule</span>
+          <label class="switch">
+            <input type="checkbox" id="autoScheduleToggle">
+            <span class="slider"></span>
+          </label>
+          <button class="icon-btn small" aria-label="Day settings">⚙</button>
         </div>
       </div>
 
-      <div class="card goals-card card--supporting">
-        <div class="card-header">
-          <h3>🎯 Daily Goals</h3>
-          <a class="card-link" href="#">+ Add Goal</a>
-        </div>
-        <div class="goal-item">
-          <div class="goal-row">
-            <span id="goalTasksLabel">Complete 5 tasks</span>
-            <span class="goal-val" id="goalTasksVal">3/5</span>
-          </div>
-          <div class="goal-bar"><div class="goal-fill" id="goalTasksFill" style="width:60%"></div></div>
-        </div>
-        <div class="goal-item">
-          <div class="goal-row">
-            <span>Focus for 2 hours</span>
-            <span class="goal-val">1.5/2h</span>
-          </div>
-          <div class="goal-bar"><div class="goal-fill goal-fill--blue" style="width:75%"></div></div>
-        </div>
-        <div class="goal-item">
-          <div class="goal-row">
-            <span>Drink 2L water</span>
-            <span class="goal-val">1.6/2L</span>
-          </div>
-          <div class="goal-bar"><div class="goal-fill goal-fill--cyan" style="width:80%"></div></div>
-        </div>
-        <div class="goal-item">
-          <div class="goal-row">
-            <span>Read 30 pages</span>
-            <span class="goal-val">22/30</span>
-          </div>
-          <div class="goal-bar"><div class="goal-fill goal-fill--purple" style="width:73%"></div></div>
-        </div>
-      </div>
+      <ul class="day-timeline" id="dayTimeline"></ul>
 
-      <div class="card achievements-card card--supporting">
-        <div class="card-header">
-          <h3>🏆 Achievements</h3>
-        </div>
-        <ul class="ach-list">
-          <li>
-            <span class="ach-icon ach-icon--yellow">🐣</span>
-            <div class="ach-info">
-              <div class="ach-title">Early Bird</div>
-              <div class="ach-sub">Wake up before 6 AM</div>
-            </div>
-            <span class="ach-count">10</span>
-          </li>
-          <li>
-            <span class="ach-icon ach-icon--orange">✔</span>
-            <div class="ach-info">
-              <div class="ach-title">Task Master</div>
-              <div class="ach-sub">Complete 50 tasks</div>
-            </div>
-            <span class="ach-count">25</span>
-          </li>
-          <li>
-            <span class="ach-icon ach-icon--red">🎯</span>
-            <div class="ach-info">
-              <div class="ach-title">Focus Pro</div>
-              <div class="ach-sub">25 focus sessions</div>
-            </div>
-            <span class="ach-count">12</span>
-          </li>
-          <li>
-            <span class="ach-icon ach-icon--purple">🔥</span>
-            <div class="ach-info">
-              <div class="ach-title">Habit Streak</div>
-              <div class="ach-sub">7 day habit streak</div>
-            </div>
-            <span class="ach-count">7</span>
-          </li>
-        </ul>
-      </div>
+      <button class="add-task-pill open-task-modal" type="button">
+        <span class="plus-circle">+</span> Add Task
+      </button>
 
-      <div class="card insights-card card--supporting">
-        <div class="card-header">
-          <h3>💡 Smart Insights</h3>
+      <div class="insight-banner" id="insightBanner">
+        <span class="insight-spark">✦</span>
+        <div class="insight-text">
+          <strong id="insightTitle">You usually do your best work before 12 PM.</strong>
+          <p id="insightBody">2 of your deep work tasks are in the morning. Great choice!</p>
         </div>
-        <ul class="insight-list">
-          <li>
-            <span class="insight-icon">💡</span>
-            <p>You're most productive in the morning. Try scheduling important tasks before 12 PM.</p>
-          </li>
-          <li>
-            <span class="insight-icon">📈</span>
-            <p>Your completion rate is up 12% this week! Keep up the great work!</p>
-          </li>
-          <li>
-            <span class="insight-icon">📅</span>
-            <p>You have 3 tasks without a due date. Consider scheduling them.</p>
-          </li>
-        </ul>
+        <button class="btn btn-ghost small" id="viewInsightsBtn">View Insights</button>
+        <button class="insight-close" id="insightClose" aria-label="Dismiss">✕</button>
       </div>
     </section>
-
-    <!-- BOTTOM ROW -->
-    <section class="grid-bottom">
-      <div class="card analytics-card card--supporting">
-        <div class="card-header">
-          <h3>📊 Analytics Overview</h3>
-          <span class="tag" id="analyticsWeekTag">This Week</span>
-        </div>
-        <div class="analytics-body">
-          <div class="analytics-chart">
-            <div class="chart-title">Tasks Completed</div>
-            <div class="bar-chart">
-              <div class="bar" id="bar0" style="height:2%"></div>
-              <div class="bar" id="bar1" style="height:2%"></div>
-              <div class="bar" id="bar2" style="height:2%"></div>
-              <div class="bar" id="bar3" style="height:2%"></div>
-              <div class="bar" id="bar4" style="height:2%"></div>
-              <div class="bar" id="bar5" style="height:2%"></div>
-              <div class="bar" id="bar6" style="height:2%"></div>
-            </div>
-            <div class="bar-labels">
-              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-            </div>
-          </div>
-
-          <div class="analytics-donut">
-            <div class="chart-title">Category Breakdown</div>
-            <div class="donut-wrap">
-              <svg viewBox="0 0 42 42" class="donut">
-                <circle class="donut-seg" id="segWork" cx="21" cy="21" r="15.9" stroke="#7c6df2" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
-                <circle class="donut-seg" id="segPersonal" cx="21" cy="21" r="15.9" stroke="#4c8dff" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
-                <circle class="donut-seg" id="segHealth" cx="21" cy="21" r="15.9" stroke="#22c55e" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
-                <circle class="donut-seg" id="segStudy" cx="21" cy="21" r="15.9" stroke="#f59e0b" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
-                <circle class="donut-seg" id="segOther" cx="21" cy="21" r="15.9" stroke="#f43f5e" stroke-dasharray="0 100" stroke-dashoffset="25"></circle>
-              </svg>
-            </div>
-            <ul class="legend">
-              <li><i style="background:#7c6df2"></i>Work <span id="legWork">0%</span></li>
-              <li><i style="background:#4c8dff"></i>Personal <span id="legPersonal">0%</span></li>
-              <li><i style="background:#22c55e"></i>Health <span id="legHealth">0%</span></li>
-              <li><i style="background:#f59e0b"></i>Study <span id="legStudy">0%</span></li>
-              <li><i style="background:#f43f5e"></i>Other <span id="legOther">0%</span></li>
-            </ul>
-          </div>
-
-          <div class="analytics-score">
-            <div class="chart-title">Productivity Score</div>
-            <div class="score-ring">
-              <svg viewBox="0 0 120 120">
-                <circle class="sring-bg" cx="60" cy="60" r="52"></circle>
-                <circle class="sring-fg" id="scoreRingFg" cx="60" cy="60" r="52"></circle>
-              </svg>
-              <div class="score-center">
-                <div class="score-val" id="scoreVal">0%</div>
-                <div class="score-caption" id="scoreCaption">Let's go!</div>
-              </div>
-            </div>
-            <div class="score-sub" id="scoreSub">No data yet</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card ai-card card--supporting">
-        <div class="card-header">
-          <h3>✦ AI Assistant</h3>
-        </div>
-        <div class="ai-input-wrap">
-          <input type="text" placeholder="Ask me anything about your tasks, schedule, or productivity...">
-          <button class="ai-send">➤</button>
-        </div>
-        <div class="ai-chips">
-          <button class="chip">Plan my day</button>
-          <button class="chip">Optimize schedule</button>
-          <button class="chip">Focus suggestions</button>
-          <button class="chip">Weekly summary</button>
-        </div>
-      </div>
-
-      <div class="card shortcuts-card card--supporting">
-        <div class="card-header">
-          <h3>⚡ Quick Shortcuts</h3>
-        </div>
-        <div class="shortcut-grid">
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--purple">📥</span>Inbox
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--green">📌</span>Today
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--blue">📆</span>Tomorrow
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--orange">🗂</span>This Week
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--pink">⭐</span>Priority
-          </button>
-          <button class="shortcut-btn">
-            <span class="shortcut-icon shortcut-icon--cyan">🗃</span>Archive
-          </button>
-        </div>
-      </div>
-    </section>
-
   </main>
+
+  <!-- ASSISTANT PANEL -->
+  <aside class="assistant-panel" id="assistantPanel">
+    <div class="assistant-header">
+      <div class="assistant-title"><span class="spark">✦</span> Trackler Assistant</div>
+      <div class="assistant-header-actions">
+        <button class="icon-btn tiny" aria-label="More options">⋮</button>
+        <button class="icon-btn tiny" id="assistantCloseBtn" aria-label="Close assistant">✕</button>
+      </div>
+    </div>
+
+    <div class="assistant-orb-wrap">
+      <div class="assistant-orb" id="assistantOrb"></div>
+      <div class="assistant-status" id="assistantStatus">Ready</div>
+      <div class="assistant-status-sub" id="assistantStatusSub">Tap the mic or type below</div>
+      <div class="waveform" id="waveform">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <div class="suggested-label">Suggested for you</div>
+    <div class="suggestion-card" id="suggestionCard">
+      <p>I found a better time for <strong id="suggestionTarget">Database Schema Design</strong>. Shall I move it to <strong id="suggestionTime">2:00 PM</strong>?</p>
+      <div class="suggestion-actions">
+        <button class="btn btn-primary small" id="suggestionMove">Move it</button>
+        <button class="btn btn-ghost small" id="suggestionLater">Maybe later</button>
+      </div>
+    </div>
+
+    <div class="upcoming-row">
+      <span>Upcoming</span>
+      <span class="upcoming-toggle">Tomorrow ⌄</span>
+    </div>
+    <ul class="upcoming-list" id="upcomingList"></ul>
+    <a class="more-events" id="moreEventsLink" href="#"></a>
+
+    <div class="assistant-input-wrap">
+      <span class="spark">✦</span>
+      <input type="text" id="assistantInput" placeholder="Ask anything or press ⌘K">
+      <button class="assistant-send" id="assistantSend" aria-label="Send">➤</button>
+    </div>
+  </aside>
+
 </div>
 
 <!-- ADD / EDIT TASK MODAL -->
 <div class="modal-overlay" id="taskModalOverlay">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
     <div class="modal-header">
-      <h3 id="taskModalTitle">Add Task</h3>
+      <h3 id="taskModalTitle">Add to Your Day</h3>
       <button class="modal-close" id="taskModalClose" aria-label="Close">✕</button>
     </div>
     <form id="taskForm" class="modal-body">
@@ -554,43 +228,38 @@
         <span>Title</span>
         <input type="text" id="taskTitleInput" placeholder="e.g. Write project proposal" required>
       </label>
-      <label class="field">
-        <span>Details</span>
-        <input type="text" id="taskSubInput" placeholder="e.g. Draft outline and share for review">
-      </label>
       <div class="field-row">
+        <label class="field">
+          <span>Type</span>
+          <select id="taskTypeInput">
+            <option value="task" selected>Task</option>
+            <option value="meeting">Meeting</option>
+            <option value="break">Break</option>
+          </select>
+        </label>
         <label class="field">
           <span>Priority</span>
           <select id="taskPriorityInput">
             <option value="high">High</option>
             <option value="medium" selected>Medium</option>
             <option value="low">Low</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Category</span>
-          <select id="taskCategoryInput">
-            <option value="Work" selected>Work</option>
-            <option value="Personal">Personal</option>
-            <option value="Health">Health</option>
-            <option value="Study">Study</option>
-            <option value="Other">Other</option>
+            <option value="none">None</option>
           </select>
         </label>
       </div>
       <div class="field-row">
         <label class="field">
-          <span>Start</span>
+          <span>Start Time</span>
           <input type="time" id="taskStartInput" value="09:00">
         </label>
         <label class="field">
-          <span>End</span>
-          <input type="time" id="taskEndInput" value="10:00">
+          <span>Duration (minutes)</span>
+          <input type="number" id="taskDurationInput" value="30" min="5" step="5">
         </label>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="taskModalCancel">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Task</button>
+        <button type="submit" class="btn btn-primary">Add to Day</button>
       </div>
     </form>
   </div>
