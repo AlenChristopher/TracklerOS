@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,7 +22,7 @@
 
     <nav class="nav3-main" aria-label="Primary">
       <a class="nav3-item active" href="#" data-view="today"><span class="nav3-icon">🏠</span> Today</a>
-      <a class="nav3-item" href="#" data-view="schedule"><span class="nav3-icon">📅</span> Schedule</a>
+      <a class="nav3-item" href="#" data-view="schedule"><span class="nav3-icon">📅</span> Calendar</a>
       <a class="nav3-item" href="#" data-view="projects"><span class="nav3-icon">🗂</span> Projects</a>
       <a class="nav3-item" href="#" data-view="insights"><span class="nav3-icon">📊</span> Insights</a>
       <a class="nav3-item" href="#" data-view="settings"><span class="nav3-icon">⚙</span> Settings</a>
@@ -72,7 +73,7 @@
       </div>
     </header>
 
-    <!-- DAILY BRIEFING (replaces dashboard metrics) -->
+    <!-- DAILY BRIEFING -->
     <section class="briefing-card">
       <div class="briefing-main">
         <div class="briefing-kicker">Daily Briefing</div>
@@ -83,7 +84,7 @@
       </button>
     </section>
 
-    <!-- SINGLE AI RECOMMENDATION -->
+    <!-- AI RECOMMENDATION -->
     <section class="recommendation-card" id="recommendationCard">
       <span class="rec-spark">✦</span>
       <div class="rec-text">
@@ -117,121 +118,207 @@
     </section>
   </main>
 
-  <!-- STUB VIEWS: Schedule / Projects / Insights / Settings -->
-  <main class="main3 stub-view hidden" id="view-schedule" data-view-panel="schedule">
-    <header class="top3"><div class="greeting3"><h1>Schedule</h1><p>Week and month views of your timeline.</p></div></header>
-    <section class="stub-card"><span class="stub-ico">📅</span><h2>Schedule is on its way</h2><p>This is where week/month planning will live. Ask the Assistant to schedule something and it'll show up on Today.</p></section>
+  <!-- CALENDAR VIEW -->
+  <main class="main3 calendar-view hidden" id="view-schedule" data-view-panel="schedule">
+    <header class="calendar-toolbar">
+      <div class="calendar-heading">
+        <div>
+          <h1>Calendar</h1>
+          <p>Plan your days, weeks and months.</p>
+        </div>
+      </div>
+
+      <div class="calendar-nav">
+        <button class="calendar-today-btn" id="calendarToday" type="button">Today</button>
+        <button class="calendar-arrow" id="calendarPrev" type="button" aria-label="Previous period">‹</button>
+        <button class="calendar-arrow" id="calendarNext" type="button" aria-label="Next period">›</button>
+        <h2 id="calendarPeriodTitle">November 2026</h2>
+        <div class="calendar-view-switch">
+          <button class="calendar-view-btn active" data-calendar-view="day" type="button">Day</button>
+          <button class="calendar-view-btn" data-calendar-view="week" type="button">Week</button>
+          <button class="calendar-view-btn" data-calendar-view="month" type="button">Month</button>
+        </div>
+        <button class="btn btn-primary" id="calendarAddEvent" type="button">+ Create</button>
+      </div>
+    </header>
+
+    <div class="calendar-layout">
+      <aside class="calendar-sidebar">
+        <button class="calendar-create-btn" id="calendarSidebarCreate" type="button">+ Create</button>
+
+        <div class="mini-calendar">
+          <div class="mini-calendar-header">
+            <strong id="miniCalendarTitle">November 2026</strong>
+            <div>
+              <button id="miniCalendarPrev" type="button">‹</button>
+              <button id="miniCalendarNext" type="button">›</button>
+            </div>
+          </div>
+          <div class="mini-calendar-grid" id="miniCalendarGrid"></div>
+        </div>
+
+        <div class="calendar-list-section">
+          <h3>My calendars</h3>
+          <label><input type="checkbox" checked disabled> <span class="calendar-color-dot"></span> Trackler Tasks</label>
+          <label><input type="checkbox" checked disabled> <span class="calendar-color-dot events"></span> Trackler Events</label>
+        </div>
+
+        <div class="calendar-sidebar-note">
+          Your tasks and events are stored locally in this browser.
+        </div>
+      </aside>
+
+      <section class="calendar-main">
+        <div class="calendar-day-view" id="calendarDayView">
+          <div class="calendar-day-header" id="calendarDayHeader"></div>
+          <div class="calendar-time-grid" id="calendarTimeGrid"></div>
+        </div>
+
+        <div class="calendar-week-view hidden" id="calendarWeekView"></div>
+        <div class="calendar-month-view hidden" id="calendarMonthView"></div>
+      </section>
+    </div>
   </main>
-  <main class="main3 stub-view hidden" id="view-projects" data-view-panel="projects">
-    <header class="top3"><div class="greeting3"><h1>Projects</h1><p>Group tasks into projects and track progress.</p></div></header>
-    <section class="stub-card"><span class="stub-ico">🗂</span><h2>Projects is on its way</h2><p>Organize your tasks into projects here once this view is built.</p></section>
+
+  <!-- PROJECTS -->
+  <main class="main3 hidden" id="view-projects" data-view-panel="projects">
+    <header class="top3">
+      <div class="greeting3">
+        <h1>Projects</h1>
+        <p>Keep your work organised.</p>
+      </div>
+    </header>
+    <section class="day-card">
+      <div class="day-card-header">
+        <h2>Your Projects</h2>
+      </div>
+      <div id="projectsContent"></div>
+    </section>
   </main>
-  <main class="main3 stub-view hidden" id="view-insights" data-view-panel="insights">
-    <header class="top3"><div class="greeting3"><h1>Insights</h1><p>Analytics and trends live here — kept out of Today so it stays calm.</p></div></header>
-    <section class="stub-card"><span class="stub-ico">📊</span><h2>Insights is on its way</h2><p>Focus-time trends, streaks, and completion analytics will appear here.</p></section>
+
+  <!-- INSIGHTS -->
+  <main class="main3 hidden" id="view-insights" data-view-panel="insights">
+    <header class="top3">
+      <div class="greeting3">
+        <h1>Insights</h1>
+        <p>Understand your productivity.</p>
+      </div>
+    </header>
+    <section class="day-card">
+      <h2>Your Insights</h2>
+      <div id="insightsContent"></div>
+    </section>
   </main>
-  <main class="main3 stub-view hidden" id="view-settings" data-view-panel="settings">
-    <header class="top3"><div class="greeting3"><h1>Settings</h1><p>Manage your preferences.</p></div></header>
-    <section class="stub-card"><span class="stub-ico">⚙</span><h2>Settings is on its way</h2><p>Theme, motion, and account preferences are currently in the sidebar — a full settings screen is coming.</p></section>
+
+  <!-- SETTINGS -->
+  <main class="main3 hidden" id="view-settings" data-view-panel="settings">
+    <header class="top3">
+      <div class="greeting3">
+        <h1>Settings</h1>
+        <p>Make TracklerOS work your way.</p>
+      </div>
+    </header>
+    <section class="day-card">
+      <h2>Preferences</h2>
+      <div id="settingsContent"></div>
+    </section>
   </main>
 
   <!-- ASSISTANT PANEL -->
-  <aside class="assistant-panel" id="assistantPanel" data-view-panel="assistant">
+  <aside class="assistant-panel" id="assistantPanel">
     <div class="assistant-header">
-      <div class="assistant-title"><span class="spark">✦</span> Trackler Assistant</div>
-      <div class="assistant-header-actions">
-        <button class="icon-btn tiny" aria-label="More options">⋮</button>
-        <button class="icon-btn tiny" id="assistantCloseBtn" aria-label="Close assistant">✕</button>
+      <div class="assistant-title">
+        <div class="assistant-orb" id="assistantOrb"></div>
+        <div>
+          <h2>Trackler Assistant</h2>
+          <p id="assistantStatus">Ready to help</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="closeAssistant" aria-label="Close assistant">✕</button>
+    </div>
+
+    <div class="assistant-body" id="assistantBody">
+      <div class="assistant-welcome">
+        <div class="assistant-orb large"></div>
+        <h3>How can I help?</h3>
+        <p>Tell me what you want to organise today.</p>
       </div>
     </div>
 
-    <div class="assistant-orb-wrap">
-      <div class="assistant-orb" id="assistantOrb" data-state="idle"></div>
-      <div class="assistant-status" id="assistantStatus">Idle</div>
-      <div class="assistant-status-sub" id="assistantStatusSub">Tap the mic or type below</div>
-      <div class="waveform" id="waveform">
-        <span></span><span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span><span></span>
-      </div>
+    <div class="assistant-suggestions">
+      <button type="button">Plan my day</button>
+      <button type="button">Show my priorities</button>
+      <button type="button">Add a task</button>
     </div>
 
-    <div class="upcoming-row">
-      <span>Upcoming</span>
-      <span class="upcoming-toggle">Tomorrow ⌄</span>
-    </div>
-    <ul class="upcoming-list" id="upcomingList"></ul>
-    <a class="more-events" id="moreEventsLink" href="#"></a>
-
-    <div class="assistant-input-wrap">
-      <span class="spark">✦</span>
-      <input type="text" id="assistantInput" placeholder="Ask anything or press ⌘K">
-      <button class="assistant-send" id="assistantSend" aria-label="Send">➤</button>
-    </div>
+    <form class="assistant-input-area" id="assistantForm">
+      <input type="text" id="assistantInput" placeholder="Ask Trackler anything..." autocomplete="off">
+      <button type="button" id="assistantMic" aria-label="Voice input">🎙</button>
+      <button type="submit" aria-label="Send message">➤</button>
+    </form>
   </aside>
 
-</div>
+  <button class="assistant-fab" id="assistantFab" type="button" aria-label="Open assistant">✦</button>
 
-<!-- MOBILE BOTTOM NAV (assistant-first) -->
-<nav class="mobile-tabbar" aria-label="Mobile navigation">
-  <button class="mtab active" data-view="today" aria-label="Today"><span>🏠</span>Today</button>
-  <button class="mtab" data-view="schedule" aria-label="Schedule"><span>📅</span>Schedule</button>
-  <button class="mtab mtab-assistant" data-view="assistant" aria-label="Assistant"><span>✦</span>Assistant</button>
-  <button class="mtab" data-view="projects" aria-label="Projects"><span>🗂</span>Projects</button>
-  <button class="mtab" data-view="insights" aria-label="Insights"><span>📊</span>Insights</button>
-</nav>
+  <!-- TASK / EVENT MODAL -->
+  <div class="modal-overlay hidden" id="taskModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="taskModalTitle">Create task or event</h2>
+        <button class="icon-btn" id="closeTaskModal" type="button">✕</button>
+      </div>
 
-<!-- ADD / EDIT TASK MODAL -->
-<div class="modal-overlay" id="taskModalOverlay">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
-    <div class="modal-header">
-      <h3 id="taskModalTitle">Add to Your Day</h3>
-      <button class="modal-close" id="taskModalClose" aria-label="Close">✕</button>
+      <form id="taskModalForm">
+        <label for="taskTitleInput">Title</label>
+        <input id="taskTitleInput" type="text" placeholder="What do you need to do?" required>
+
+        <label for="taskTypeInput">Type</label>
+        <select id="taskTypeInput">
+          <option value="task">Task</option>
+          <option value="event">Event</option>
+          <option value="meeting">Meeting</option>
+          <option value="focus">Focus time</option>
+        </select>
+
+        <div class="modal-two-columns">
+          <div>
+            <label for="taskDateInput">Date</label>
+            <input id="taskDateInput" type="date" required>
+          </div>
+          <div>
+            <label for="taskPriorityInput">Priority</label>
+            <select id="taskPriorityInput">
+              <option value="normal">Normal</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-two-columns">
+          <div>
+            <label for="taskStartInput">Start time</label>
+            <input id="taskStartInput" type="time" value="09:00" required>
+          </div>
+          <div>
+            <label for="taskEndInput">End time</label>
+            <input id="taskEndInput" type="time" value="10:00" required>
+          </div>
+        </div>
+
+        <label for="taskDescriptionInput">Description (optional)</label>
+        <textarea id="taskDescriptionInput" rows="3" placeholder="Add details..."></textarea>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="cancelTaskModal" type="button">Cancel</button>
+          <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+      </form>
     </div>
-    <form id="taskForm" class="modal-body">
-      <label class="field">
-        <span>Title</span>
-        <input type="text" id="taskTitleInput" placeholder="e.g. Write project proposal" required>
-      </label>
-      <div class="field-row">
-        <label class="field">
-          <span>Type</span>
-          <select id="taskTypeInput">
-            <option value="task" selected>Task</option>
-            <option value="meeting">Meeting</option>
-            <option value="break">Break</option>
-            <option value="focus">Focus Block</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Priority</span>
-          <select id="taskPriorityInput">
-            <option value="high">High</option>
-            <option value="medium" selected>Medium</option>
-            <option value="low">Low</option>
-            <option value="none">None</option>
-          </select>
-        </label>
-      </div>
-      <div class="field-row">
-        <label class="field">
-          <span>Start Time</span>
-          <input type="time" id="taskStartInput" value="09:00">
-        </label>
-        <label class="field">
-          <span>Duration (minutes)</span>
-          <input type="number" id="taskDurationInput" value="30" min="5" step="5">
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="taskModalCancel">Cancel</button>
-        <button type="submit" class="btn btn-primary">Add to Day</button>
-      </div>
-    </form>
   </div>
-</div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
 
 <script src="script.js"></script>
 </body>
