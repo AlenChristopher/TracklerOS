@@ -21,6 +21,76 @@
     showCompleted: false,
     assistantOpen: false,
   };
+  
+let pendingAssistantTask = null;
+let pendingAssistantReminder = null;
+function parseAssistantTaskRequest(message) {
+  const now = new Date();
+  const text = message.trim();
+
+  // Extract the time.
+  const timeMatch = text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\b|\b([01]?\d|2[0-3]):([0-5]\d)\b/i);
+  if (!timeMatch) return { missing: 'time' };
+
+  let hours;
+  let minutes;
+
+  if (timeMatch[3]) {
+    hours = Number(timeMatch[1]) % 12;
+    if (timeMatch[3].toUpperCase() === 'PM') hours += 12;
+    minutes = Number(timeMatch[2] || 0);
+  } else {
+    hours = Number(timeMatch[4]);
+    minutes = Number(timeMatch[5]);
+  }
+
+  // Extract the date.
+  let date = new Date(now);
+  const lower = text.toLowerCase();
+
+  if (lower.includes('tomorrow')) {
+    date.setDate(date.getDate() + 1);
+  } else if (lower.includes('today')) {
+    // Keep today's date.
+  } else {
+    return { missing: 'date' };
+  }
+
+  const title = text
+    .replace(/^(please\s+)?(create|add|make|schedule)\s+(a\s+)?(new\s+)?task\s+(to\s+)?/i, '')
+    .replace(/\b(today|tomorrow)\b/i, '')
+    .replace(/\b(at\s+)?\d{1,2}(?::\d{2})?\s*(AM|PM)\b/i, '')
+    .replace(/\b(at\s+)?([01]?\d|2[0-3]):([0-5]\d)\b/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!title) return { missing: 'title' };
+
+  return {
+    title: title.replace(/[.,!?]+$/, ''),
+    date: dateKey(date),
+    start: `${pad(hours)}:${pad(minutes)}`,
+    duration: 30
+  };
+}
+
+function parseAssistantReminderRequest(message) {
+  const taskRequest = message.replace(
+    /^remind\s+me\s+to\s+/i,
+    'Create a task to '
+  );
+
+  const result = parseAssistantTaskRequest(taskRequest);
+
+  if (!result.missing) {
+    result.isReminder = true;
+    result.reminderNotified = false;
+  }
+
+  return result;
+}
+
+
 
   const pad = n => String(n).padStart(2, '0');
   const dateKey = (d = new Date()) =>
@@ -71,6 +141,8 @@
       duration: Number(item.duration) > 0 ? Number(item.duration) :
         Math.max(15, mins(item.end || '09:30') - mins(item.start || '09:00')),
       done: Boolean(item.done),
+      isReminder: Boolean(item.isReminder),
+reminderNotified: Boolean(item.reminderNotified),
     }));
     save();
   }
@@ -170,15 +242,46 @@
         <div class="timeline-time">${time12(item.start)}</div>
         <div class="timeline-track"><span class="timeline-dot"></span></div>
         <div class="timeline-content">
-          <button class="task-check" type="button" data-toggle="${escapeHTML(item.id)}" aria-label="Mark ${escapeHTML(item.title)} complete">${typeIcon(item.type)}</button>
+          <button
+  class="task-check"
+  type="button"
+  data-toggle="${escapeHTML(item.id)}"
+  aria-label="Mark ${escapeHTML(item.title)} complete"
+  title="Mark complete"
+>
+  <span aria-hidden="true">✓</span>
+</button>
           <div class="event-icon">${typeIcon(item.type)}</div>
           <div class="event-info">
             <div class="event-title">${escapeHTML(item.title)}</div>
             <div class="event-meta">${time12(item.start)} · ${item.duration} min · ${typeLabel(item.type)}</div>
           </div>
           <span class="event-tag ${priorityClass(item.priority)}">${escapeHTML(item.priority)}</span>
-          <button class="task-edit" type="button" data-edit="${escapeHTML(item.id)}" aria-label="Edit task">⋯</button>
-        </div>
+                   <div class="task-menu-wrap">
+            <button
+              class="task-edit"
+              type="button"
+              data-task-menu="${escapeHTML(item.id)}"
+              aria-label="Task options"
+              aria-expanded="false"
+            >
+  <svg width="18" height="18" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round"
+       aria-hidden="true">
+    <circle cx="5" cy="12" r="1"/>
+    <circle cx="12" cy="12" r="1"/>
+    <circle cx="19" cy="12" r="1"/>
+  </svg>
+</button>
+
+            <div class="task-menu hidden" data-task-menu-panel="${escapeHTML(item.id)}">
+              <button type="button" data-edit="${escapeHTML(item.id)}">
+                <span aria-hidden="true">✎</span>
+                Edit task
+              </button>
+            </div>
+          </div>
       </li>
     `).join('') : `<li class="empty-day">Nothing planned for today. Add a task to get started.</li>`;
 
@@ -289,12 +392,30 @@
   }
 
   function toggleTask(id) {
-    const item = state.items.find(x => x.id === id);
-    if (!item) return;
-    item.done = !item.done;
-    save();
-    renderAll();
+  const item = state.items.find(x => x.id === id);
+  if (!item) return;
+
+  const willComplete = !item.done;
+  const taskCard = document.querySelector(
+    `.timeline-item[data-item-id="${CSS.escape(id)}"]`
+  );
+
+  if (willComplete && taskCard) {
+    taskCard.classList.add('task-completing');
+
+    setTimeout(() => {
+      item.done = true;
+      save();
+      renderAll();
+    }, 350);
+
+    return;
   }
+
+  item.done = willComplete;
+  save();
+  renderAll();
+}
 
   function editTask(id) {
     const item = state.items.find(x => x.id === id);
@@ -340,71 +461,157 @@
     </button>`;
   }
 
+  // Arrange overlapping events into side-by-side lanes.
+  function getCalendarEventLayouts(events) {
+    const sorted = [...events].sort((a, b) =>
+      mins(a.start) - mins(b.start) ||
+      (mins(a.start) + a.duration) - (mins(b.start) + b.duration)
+    );
+
+    const layouts = new Map();
+    let cluster = [];
+    let clusterEnd = -Infinity;
+
+    function finishCluster() {
+      if (!cluster.length) return;
+
+      const laneEnds = [];
+      const assigned = [];
+
+      cluster.forEach(item => {
+        const start = mins(item.start);
+        const end = start + item.duration;
+        let lane = laneEnds.findIndex(laneEnd => laneEnd <= start);
+
+        if (lane === -1) {
+          lane = laneEnds.length;
+          laneEnds.push(end);
+        } else {
+          laneEnds[lane] = end;
+        }
+
+        assigned.push({ item, lane });
+      });
+
+      const laneCount = Math.max(1, laneEnds.length);
+      assigned.forEach(({ item, lane }) => {
+        layouts.set(item.id, {
+          left: lane * 100 / laneCount,
+          width: 100 / laneCount
+        });
+      });
+
+      cluster = [];
+      clusterEnd = -Infinity;
+    }
+
+    sorted.forEach(item => {
+      const start = mins(item.start);
+      const end = start + item.duration;
+      if (cluster.length && start >= clusterEnd) finishCluster();
+      cluster.push(item);
+      clusterEnd = Math.max(clusterEnd, end);
+    });
+
+    finishCluster();
+    return layouts;
+  }
+
+  function calendarEventMarkup(item, layout, includeDuration = true) {
+    const top = (mins(item.start) - 360) / 60 * 58;
+    const height = Math.max(28, item.duration / 60 * 58);
+    const left = layout ? layout.left : 0;
+    const width = layout ? layout.width : 100;
+    const showTime = includeDuration && height >= 40;
+
+    return `<button
+      type="button"
+      class="cal-event ${item.type}"
+      data-calendar-edit="${escapeHTML(item.id)}"
+      data-calendar-event="${escapeHTML(item.id)}"
+      data-calendar-date="${escapeHTML(item.date)}"
+      title="${escapeHTML(item.title)} · ${time12(item.start)} · ${item.duration} min"
+      style="top:${top}px;height:${height}px;left:calc(${left}% + 4px);width:calc(${width}% - 8px);right:auto"
+    >
+      <strong>${escapeHTML(item.title)}</strong>
+      ${showTime ? `<small>${time12(item.start)} · ${item.duration} min</small>` : ''}
+      <span class="cal-event-resize" data-resize="${escapeHTML(item.id)}" aria-label="Resize event"></span>
+    </button>`;
+  }
+
   function renderDayCalendar() {
     const canvas = $('#calendarCanvas');
     if (!canvas) return;
+
     const day = state.calendarDate;
     const events = itemsFor(day);
+    const layouts = getCalendarEventLayouts(events);
     const hours = Array.from({ length: 17 }, (_, i) => i + 6);
+
     canvas.innerHTML = `
       <div class="cal-day-header">
         <div></div>
         <div class="cal-day-name selected">${new Intl.DateTimeFormat('en', { weekday: 'long' }).format(day)}<strong>${day.getDate()}</strong></div>
       </div>
       <div class="cal-time-grid">
-        <div class="cal-time-labels">${hours.map(h => `<div class="cal-time-label">${new Date(2000,0,1,h).toLocaleTimeString('en',{hour:'numeric'}).replace(':00','')}</div>`).join('')}</div>
-        <div class="cal-day-column">${hours.map(h => `<div class="cal-time-column" data-hour="${h}"></div>`).join('')}
-          ${events.map(item => {
-            const top = (mins(item.start) - 360) / 60 * 58;
-            const height = Math.max(28, item.duration / 60 * 58);
-            return `<button type="button" class="cal-event ${item.type}" data-calendar-edit="${escapeHTML(item.id)}" style="top:${top}px;height:${height}px"><strong>${escapeHTML(item.title)}</strong><small>${time12(item.start)} · ${item.duration} min</small></button>`;
-          }).join('')}
+        <div class="cal-time-labels">
+          ${hours.map(h => `<div class="cal-time-label">${new Date(2000, 0, 1, h).toLocaleTimeString('en', { hour: 'numeric' }).replace(':00', '')}</div>`).join('')}
+        </div>
+        <div class="cal-day-column">
+          ${hours.map(h => `<div class="cal-time-column" data-hour="${h}"></div>`).join('')}
+          ${events.map(item => calendarEventMarkup(item, layouts.get(item.id))).join('')}
         </div>
       </div>`;
+
     const col = $('.cal-day-column', canvas);
     col?.addEventListener('click', event => {
       if (event.target.closest('[data-calendar-edit]')) return;
       const rect = col.getBoundingClientRect();
-      const hour = Math.max(6, Math.min(22, 6 + Math.floor((event.clientY - rect.top) / 58)));
-      openModal(null, { date: dateKey(day), start: `${pad(hour)}:00` });
+      const minuteOffset = Math.floor(((event.clientY - rect.top) / 58 * 60) / 15) * 15;
+      const start = Math.max(360, Math.min(1290, 360 + minuteOffset));
+      openModal(null, { date: dateKey(day), start: timeString(start) });
     });
   }
 
   function renderWeekCalendar() {
     const canvas = $('#calendarCanvas');
     if (!canvas) return;
+
     const start = startOfWeek(state.calendarDate);
     const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
     const hours = Array.from({ length: 17 }, (_, i) => i + 6);
+
     canvas.innerHTML = `
       <div class="cal-week-scroll">
         <div class="cal-week-header">
           <div></div>
-          ${days.map(day => `<div class="${sameDate(day,new Date()) ? 'selected' : ''}">${new Intl.DateTimeFormat('en',{weekday:'short'}).format(day)}<strong>${day.getDate()}</strong></div>`).join('')}
+          ${days.map(day => `<div class="${sameDate(day, new Date()) ? 'selected' : ''}">${new Intl.DateTimeFormat('en', { weekday: 'short' }).format(day)}<strong>${day.getDate()}</strong></div>`).join('')}
         </div>
         <div class="cal-week-grid">
-          <div>${hours.map(h => `<div class="cal-time-label">${new Date(2000,0,1,h).toLocaleTimeString('en',{hour:'numeric'}).replace(':00','')}</div>`).join('')}</div>
-          ${days.map(day => `<div class="cal-week-day" data-week-date="${dateKey(day)}">
-            ${hours.map(() => '<div class="cal-week-hour"></div>').join('')}
-            ${itemsFor(day).map(item => {
-              const top = (mins(item.start) - 360) / 60 * 58;
-              const height = Math.max(28, item.duration / 60 * 58);
-              return `<button type="button" class="cal-event ${item.type}" data-calendar-edit="${escapeHTML(item.id)}" style="top:${top}px;height:${height}px"><strong>${escapeHTML(item.title)}</strong><small>${time12(item.start)}</small></button>`;
-            }).join('')}
-          </div>`).join('')}
+          <div>${hours.map(h => `<div class="cal-time-label">${new Date(2000, 0, 1, h).toLocaleTimeString('en', { hour: 'numeric' }).replace(':00', '')}</div>`).join('')}</div>
+          ${days.map(day => {
+            const events = itemsFor(day);
+            const layouts = getCalendarEventLayouts(events);
+            return `<div class="cal-week-day" data-week-date="${dateKey(day)}">
+              ${hours.map(() => '<div class="cal-week-hour"></div>').join('')}
+              ${events.map(item => calendarEventMarkup(item, layouts.get(item.id))).join('')}
+            </div>`;
+          }).join('')}
         </div>
       </div>`;
+
     $$('[data-week-date]', canvas).forEach(col => {
       col.addEventListener('click', event => {
         if (event.target.closest('[data-calendar-edit]')) return;
         const rect = col.getBoundingClientRect();
-        const hour = Math.max(6, Math.min(22, 6 + Math.floor((event.clientY - rect.top) / 58)));
-        openModal(null, { date: col.dataset.weekDate, start: `${pad(hour)}:00` });
+        const minuteOffset = Math.floor(((event.clientY - rect.top) / 58 * 60) / 15) * 15;
+        const start = Math.max(360, Math.min(1290, 360 + minuteOffset));
+        openModal(null, { date: col.dataset.weekDate, start: timeString(start) });
       });
     });
   }
 
-  function renderMonthCalendar() {
+function renderMonthCalendar() {
     const canvas = $('#calendarCanvas');
     if (!canvas) return;
     const selected = state.calendarDate;
@@ -482,20 +689,210 @@
     $('#waveform')?.classList.toggle('active', value === 'listening' || value === 'speaking');
   }
 
-  function sendAssistantMessage() {
-    const input = $('#assistantInput');
-    if (!input || !input.value.trim()) return;
-    const message = input.value.trim();
-    input.value = '';
-    setAssistantState('thinking');
-    const statusSub = $('#assistantStatusSub');
-    if (statusSub) statusSub.textContent = `You said: “${message}”`;
-    setTimeout(() => {
-      setAssistantState('speaking', 'Assistant demo');
-      if (statusSub) statusSub.textContent = 'Live AI connection has not been configured yet.';
-      setTimeout(() => setAssistantState('idle'), 1800);
-    }, 650);
+  
+  function appendAssistantMessage(message, sender) {
+    const chat = $('#assistantChat');
+    if (!chat) return;
+
+    // Remove the welcome message when the first message is sent.
+    chat.querySelector('.assistant-welcome')?.remove();
+
+    const bubble = document.createElement('div');
+    bubble.className = `chat-message ${sender}`;
+    bubble.textContent = message;
+
+    chat.appendChild(bubble);
+    chat.scrollTop = chat.scrollHeight;
   }
+
+  
+
+function sendAssistantMessage() {
+  const input = $('#assistantInput');
+  if (!input || !input.value.trim()) return;
+
+  const message = input.value.trim();
+  input.value = '';
+
+  appendAssistantMessage(message, 'user');
+  setAssistantState('thinking');
+
+  const lower = message.toLowerCase();
+
+  // Confirm a pending reminder.
+  if (pendingAssistantReminder) {
+    if (/^(yes|yeah|yep|confirm|save|save it|go ahead)$/i.test(lower)) {
+      const reminder = pendingAssistantReminder;
+      pendingAssistantReminder = null;
+
+      state.items.push({
+        id: uid(),
+        title: reminder.title,
+        type: 'task',
+        priority: 'medium',
+        date: reminder.date,
+        start: reminder.start,
+        duration: reminder.duration,
+        done: false,
+        isReminder: true,
+        reminderNotified: false
+      });
+
+      save();
+      renderAll();
+
+      appendAssistantMessage(
+        `Reminder saved: "${reminder.title}" for ${time12(reminder.start)}. `,
+        'assistant'
+      );
+      toast('Reminder saved.');
+      if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+    } else if (/^(no|nope|cancel|don't save)$/i.test(lower)) {
+      pendingAssistantReminder = null;
+      appendAssistantMessage(
+        "No problem. I haven't saved the reminder.",
+        'assistant'
+      );
+    } else {
+      appendAssistantMessage(
+        'Please reply Yes to save this reminder, or No to cancel it.',
+        'assistant'
+      );
+    }
+
+    setAssistantState('idle');
+    return;
+  }
+
+  // Confirm a pending task.
+  if (pendingAssistantTask) {
+    if (/^(yes|yeah|yep|confirm|save|save it|go ahead)$/i.test(lower)) {
+      const task = pendingAssistantTask;
+      pendingAssistantTask = null;
+
+      state.items.push({
+        id: uid(),
+        title: task.title,
+        type: 'task',
+        priority: 'medium',
+        date: task.date,
+        start: task.start,
+        duration: task.duration,
+        done: false
+      });
+
+      save();
+      renderAll();
+
+      appendAssistantMessage(
+        `Done! I've added "${task.title}" to your schedule.`,
+        'assistant'
+      );
+      toast('Task created successfully.');
+    } else if (/^(no|nope|cancel|don't save)$/i.test(lower)) {
+      pendingAssistantTask = null;
+      appendAssistantMessage(
+        "No problem. I haven't saved the task.",
+        'assistant'
+      );
+    } else {
+      appendAssistantMessage(
+        'Please reply Yes to save this task, or No to cancel it.',
+        'assistant'
+      );
+    }
+
+    setAssistantState('idle');
+    return;
+  }
+
+  // Detect reminder requests.
+  if (/\bremind me to\b/i.test(lower)) {
+    const result = parseAssistantReminderRequest(message);
+
+    if (result.missing) {
+      const prompts = {
+        date: 'What day should I remind you? Please say today or tomorrow.',
+        time: 'What time should I remind you?',
+        title: 'What should I remind you about?'
+      };
+
+      appendAssistantMessage(prompts[result.missing], 'assistant');
+      setAssistantState('idle');
+      return;
+    }
+
+    pendingAssistantReminder = result;
+
+    const readableDate = new Intl.DateTimeFormat('en', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    }).format(parseDate(result.date));
+
+    appendAssistantMessage(
+      `Here's your reminder:\n\n` +
+      `Reminder: ${result.title}\n` +
+      `Date: ${readableDate}\n` +
+      `Time: ${time12(result.start)}\n\n` +
+      `Should I save this reminder? Reply Yes or No.`,
+      'assistant'
+    );
+
+    setAssistantState('idle');
+    return;
+  }
+
+  // Detect ordinary task requests.
+  if (/\b(create|add|make|schedule)\b/i.test(lower) &&
+      /\btask\b/i.test(lower)) {
+    const result = parseAssistantTaskRequest(message);
+
+    if (result.missing) {
+      const prompts = {
+        date: 'What day should I schedule this task? Please say today or tomorrow.',
+        time: 'What time should I schedule this task?',
+        title: 'What should I call this task?'
+      };
+
+      appendAssistantMessage(prompts[result.missing], 'assistant');
+      setAssistantState('idle');
+      return;
+    }
+
+    pendingAssistantTask = result;
+
+    const readableDate = new Intl.DateTimeFormat('en', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    }).format(parseDate(result.date));
+
+    appendAssistantMessage(
+      `Here's the task I understood:\n\n` +
+      `Task: ${result.title}\n` +
+      `Date: ${readableDate}\n` +
+      `Time: ${time12(result.start)}\n` +
+      `Duration: ${result.duration} minutes\n\n` +
+      `Should I save this task? Reply Yes or No.`,
+      'assistant'
+    );
+
+    setAssistantState('idle');
+    return;
+  }
+
+  appendAssistantMessage(
+    'Try: "Create a task to finish my project tomorrow at 10 AM" or "Remind me to call John tomorrow at 4 PM."',
+    'assistant'
+  );
+
+  setAssistantState('idle');
+}
+
+
 
   function applyTheme(theme) {
     document.documentElement.dataset.theme = theme;
@@ -570,6 +967,45 @@
     });
 
     document.addEventListener('click', event => {
+
+      const menuButton = event.target.closest('[data-task-menu]');
+
+      if (menuButton) {
+        event.stopPropagation();
+
+        const id = menuButton.dataset.taskMenu;
+        const panel = document.querySelector(
+          `[data-task-menu-panel="${CSS.escape(id)}"]`
+        );
+
+        const wasOpen = panel && !panel.classList.contains('hidden');
+
+        document.querySelectorAll('[data-task-menu-panel]').forEach(menu => {
+          menu.classList.add('hidden');
+        });
+
+        document.querySelectorAll('[data-task-menu]').forEach(button => {
+          button.setAttribute('aria-expanded', 'false');
+        });
+
+        if (panel && !wasOpen) {
+          panel.classList.remove('hidden');
+          menuButton.setAttribute('aria-expanded', 'true');
+        }
+
+        return;
+      }
+
+      if (!event.target.closest('.task-menu-wrap')) {
+        document.querySelectorAll('[data-task-menu-panel]').forEach(menu => {
+          menu.classList.add('hidden');
+        });
+
+        document.querySelectorAll('[data-task-menu]').forEach(button => {
+          button.setAttribute('aria-expanded', 'false');
+        });
+      }
+
       const toggle = event.target.closest('[data-toggle]');
       if (toggle) {
         toggleTask(toggle.dataset.toggle);
@@ -588,6 +1024,124 @@
         editTask(calendarEdit.dataset.calendarEdit);
       }
     });
+  }
+
+  function initCalendarInteractions() {
+    const canvas = $('#calendarCanvas');
+    if (!canvas) return;
+
+    let gesture = null;
+    let suppressEventClick = false;
+
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const snap15 = value => Math.round(value / 15) * 15;
+
+    canvas.addEventListener('pointerdown', event => {
+      const eventCard = event.target.closest('[data-calendar-event]');
+      if (!eventCard || !canvas.contains(eventCard) || event.button !== 0) return;
+
+      const item = state.items.find(entry => entry.id === eventCard.dataset.calendarEvent);
+      if (!item) return;
+
+      gesture = {
+        pointerId: event.pointerId,
+        item,
+        element: eventCard,
+        mode: event.target.closest('[data-resize]') ? 'resize' : 'move',
+        startX: event.clientX,
+        startY: event.clientY,
+        originalStart: mins(item.start),
+        originalDuration: item.duration,
+        originalDate: item.date,
+        moved: false
+      };
+    });
+
+    document.addEventListener('pointermove', event => {
+      if (!gesture || event.pointerId !== gesture.pointerId) return;
+
+      const deltaX = event.clientX - gesture.startX;
+      const deltaY = event.clientY - gesture.startY;
+      if (!gesture.moved && Math.hypot(deltaX, deltaY) < 4) return;
+
+      gesture.moved = true;
+      gesture.element.classList.add('is-dragging');
+      event.preventDefault();
+
+      const deltaMinutes = deltaY / 58 * 60;
+
+      if (gesture.mode === 'resize') {
+        const previewDuration = clamp(
+          gesture.originalDuration + deltaMinutes,
+          15,
+          1320 - gesture.originalStart
+        );
+        gesture.element.style.height = `${Math.max(28, previewDuration / 60 * 58)}px`;
+      } else {
+        const previewStart = clamp(
+          gesture.originalStart + deltaMinutes,
+          360,
+          1320 - gesture.originalDuration
+        );
+        gesture.element.style.top = `${(previewStart - 360) / 60 * 58}px`;
+      }
+    }, { passive: false });
+
+    function finishGesture(event) {
+      if (!gesture || (event && event.pointerId !== gesture.pointerId)) return;
+
+      const current = gesture;
+      gesture = null;
+      current.element.classList.remove('is-dragging');
+      if (!current.moved) return;
+
+      const deltaMinutes = snap15((event.clientY - current.startY) / 58 * 60);
+
+      if (current.mode === 'resize') {
+        current.item.duration = clamp(
+          snap15(current.originalDuration + deltaMinutes),
+          15,
+          1320 - current.originalStart
+        );
+      } else {
+        const newStart = clamp(
+          snap15(current.originalStart + deltaMinutes),
+          360,
+          1320 - current.originalDuration
+        );
+        current.item.start = timeString(newStart);
+      }
+
+      if (state.calendarView === 'week' && current.mode === 'move' && event) {
+        const target = document.elementFromPoint(event.clientX, event.clientY);
+        const targetDay = target?.closest('[data-week-date]');
+        if (targetDay && canvas.contains(targetDay)) {
+          current.item.date = targetDay.dataset.weekDate;
+        }
+      }
+
+      save();
+      suppressEventClick = true;
+      renderAll();
+      toast(current.mode === 'resize' ? 'Event duration updated.' : 'Event time updated.');
+      setTimeout(() => { suppressEventClick = false; }, 500);
+    }
+
+    document.addEventListener('pointerup', finishGesture);
+    document.addEventListener('pointercancel', () => {
+      if (!gesture) return;
+      gesture.element.classList.remove('is-dragging');
+      gesture = null;
+      renderCalendar();
+    });
+
+    canvas.addEventListener('click', event => {
+      if (!suppressEventClick || !event.target.closest('[data-calendar-event]')) return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      suppressEventClick = false;
+    }, true);
   }
 
   function initCalendarControls() {
@@ -715,13 +1269,126 @@
       }
     });
   }
+function initNotificationControls() {
+  const button = document.getElementById('notificationBtn');
+  const panel = document.getElementById('notificationPanel');
+
+  if (!button || !panel) {
+    console.warn('Notification elements not found.');
+    return;
+  }
+
+  function closeNotifications() {
+    panel.classList.add('hidden');
+    button.setAttribute('aria-expanded', 'false');
+  }
+
+  button.addEventListener('click', event => {
+    event.stopPropagation();
+
+    const isOpen = !panel.classList.contains('hidden');
+
+    panel.classList.toggle('hidden', isOpen);
+    button.setAttribute('aria-expanded', String(!isOpen));
+  });
+
+  panel.addEventListener('click', event => {
+    event.stopPropagation();
+  });
+
+  document.addEventListener('click', closeNotifications);
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      closeNotifications();
+    }
+  });
+}
+
+function checkDueReminders() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') {
+    return;
+  }
+
+  const now = new Date();
+  let changed = false;
+
+  state.items.forEach(item => {
+    if (!item.isReminder || item.reminderNotified || item.done) return;
+
+    const reminderTime = new Date(`${item.date}T${item.start}:00`);
+
+    if (Number.isNaN(reminderTime.getTime()) || now < reminderTime) return;
+
+    new Notification('Trackler Reminder', {
+      body: item.title,
+      tag: item.id
+    });
+
+    item.reminderNotified = true;
+    changed = true;
+  });
+
+  if (changed) save();
+}
+
+function initReminderNotifications() {
+  checkDueReminders();
+
+  setInterval(checkDueReminders, 15000);
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      checkDueReminders();
+    }
+  });
+
+  window.addEventListener('focus', checkDueReminders);
+}
+
+function initDashboardClock() {
+  const clock = document.getElementById('liveClock');
+  const date = document.getElementById('liveDate');
+
+  if (!clock || !date) return;
+
+  function updateClock() {
+    const now = new Date();
+
+    clock.textContent = now.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+
+    date.textContent = now.toLocaleDateString('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    });
+  }
+
+  updateClock();
+  setInterval(updateClock, 1000);
+}
+
 
   function init() {
+    if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(() => console.info('TracklerOS service worker registered.'))
+    .catch(error => console.error('Service worker registration failed:', error));
+}
     load();
+    initDashboardClock();
     initThemeControls();
+    initNotificationControls();
+    initReminderNotifications();
     initNavigation();
     initTaskControls();
     initCalendarControls();
+    initCalendarInteractions();
     initAssistant();
     initQuickActions();
     initKeyboardControls();
