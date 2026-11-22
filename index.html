@@ -19,7 +19,7 @@
       </div>
     </div>
     <nav class="nav3-main" aria-label="Primary">
-      <a class="nav3-item active" href="#" data-view="today"><span class="nav3-icon">🏠</span> Today</a>
+      <a class="nav3-item active" href="#" data-view="today"><span class="nav3-icon">🏠</span><span class="nav-label">Today</span></a>
       <a class="nav3-item" href="#" data-view="schedule"><span class="nav3-icon">📅</span> Calendar</a>
       <a class="nav3-item" href="#" data-view="projects"><span class="nav3-icon">🗂</span> Projects</a>
       <a class="nav3-item" href="#" data-view="insights"><span class="nav3-icon">📊</span> Insights</a>
@@ -85,23 +85,11 @@
   </div>
 </div>
 
-<section class="briefing-card">
-    <section class="briefing-card">
-      <div class="briefing-main">
-        <div class="briefing-kicker">Daily Briefing</div>
-        <p class="briefing-text" id="briefingText">Loading your day…</p>
-      </div>
-      <button class="btn btn-primary quick-focus-btn" id="quickFocusBtn"><span class="qf-ico">▶</span> Quick Start Focus</button>
-    </section>
-    <section class="recommendation-card" id="recommendationCard">
-      <span class="rec-spark">✦</span>
-      <div class="rec-text">
-        <strong id="recTitle">You're all set.</strong>
-        <p id="recBody">No changes needed right now — I'll speak up if something needs your attention.</p>
-      </div>
-      <div class="rec-actions" id="recActions"></div>
-      <button class="rec-close" id="recClose" aria-label="Dismiss recommendation">✕</button>
-    </section>
+<div class="today-actions">
+  <button class="btn btn-primary quick-focus-btn" id="quickFocusBtn">
+    <span class="qf-ico">▶</span> Quick Start Focus
+  </button>
+</div>
     <section class="day-card">
       <div class="day-card-header">
         <h2>Your Day</h2>
