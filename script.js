@@ -24,42 +24,148 @@
   
 let pendingAssistantTask = null;
 let pendingAssistantReminder = null;
+let pendingAssistantDraft = null;
+
+function parseAssistantDate(message) {
+  const text = message.toLowerCase().trim();
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+
+  // Today and tomorrow.
+  if (/\btoday\b/.test(text)) return today;
+
+  if (/\btomorrow\b/.test(text)) {
+    const result = new Date(today);
+    result.setDate(result.getDate() + 1);
+    return result;
+  }
+
+  // In N days.
+  const daysMatch = text.match(/\bin\s+(\d+)\s+days?\b/);
+  if (daysMatch) {
+    const result = new Date(today);
+    result.setDate(result.getDate() + Number(daysMatch[1]));
+    return result;
+  }
+
+  // 25th of this month / 5th of next month.
+  const monthDayMatch = text.match(
+    /\b(\d{1,2})(?:st|nd|rd|th)?\s+of\s+(this|next)\s+month\b/
+  );
+
+  if (monthDayMatch) {
+    const day = Number(monthDayMatch[1]);
+    const monthOffset = monthDayMatch[2] === 'next' ? 1 : 0;
+    const result = new Date(
+      today.getFullYear(),
+      today.getMonth() + monthOffset,
+      day,
+      12
+    );
+
+    if (result.getDate() !== day) return null;
+    return result;
+  }
+
+  const months = [
+    'january', 'february', 'march', 'april', 'may', 'june',
+    'july', 'august', 'september', 'october', 'november', 'december'
+  ];
+
+  // December 10th / 10th December.
+  const monthNames = months.join('|');
+  const monthFirst = text.match(
+    new RegExp(`\\b(${monthNames})\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b`, 'i')
+  );
+  const dayFirst = text.match(
+    new RegExp(`\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(${monthNames})\\b`, 'i')
+  );
+
+  if (monthFirst || dayFirst) {
+    const month = months.indexOf(
+      (monthFirst ? monthFirst[1] : dayFirst[2]).toLowerCase()
+    );
+    const day = Number(monthFirst ? monthFirst[2] : dayFirst[1]);
+
+    let year = today.getFullYear();
+    let result = new Date(year, month, day, 12);
+
+    if (result.getDate() !== day || result.getMonth() !== month) {
+      return null;
+    }
+
+    if (result < today) {
+      year++;
+      result = new Date(year, month, day, 12);
+    }
+
+    return result;
+  }
+
+  // Next Monday, next Tuesday, etc.
+  const weekdays = [
+    'sunday', 'monday', 'tuesday', 'wednesday',
+    'thursday', 'friday', 'saturday'
+  ];
+
+  const weekdayMatch = text.match(
+    /\bnext\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/
+  );
+
+  if (weekdayMatch) {
+    const target = weekdays.indexOf(weekdayMatch[1]);
+    const result = new Date(today);
+    let difference = (target - today.getDay() + 7) % 7;
+
+    if (difference === 0) difference = 7;
+
+    result.setDate(result.getDate() + difference);
+    return result;
+  }
+
+  return null;
+}
+
+
 function parseAssistantTaskRequest(message) {
   const now = new Date();
   const text = message.trim();
 
-  // Extract the time.
-  const timeMatch = text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\b|\b([01]?\d|2[0-3]):([0-5]\d)\b/i);
+  // Extract time: 10 AM, 10:00 AM, 10:00 a.m., or 22:00.
+  const timeMatch = text.match(
+    /\b(\d{1,2})(?::([0-5]\d))?\s*(a\.?m\.?|p\.?m\.?)\b|\b([01]?\d|2[0-3]):([0-5]\d)\b/i
+  );
+
   if (!timeMatch) return { missing: 'time' };
 
   let hours;
   let minutes;
 
   if (timeMatch[3]) {
+    const period = timeMatch[3].replace(/\./g, '').toLowerCase();
+
     hours = Number(timeMatch[1]) % 12;
-    if (timeMatch[3].toUpperCase() === 'PM') hours += 12;
+    if (period === 'pm') hours += 12;
+
     minutes = Number(timeMatch[2] || 0);
   } else {
     hours = Number(timeMatch[4]);
     minutes = Number(timeMatch[5]);
   }
 
-  // Extract the date.
-  let date = new Date(now);
-  const lower = text.toLowerCase();
+    // Extract date using natural language.
+  const date = parseAssistantDate(text);
 
-  if (lower.includes('tomorrow')) {
-    date.setDate(date.getDate() + 1);
-  } else if (lower.includes('today')) {
-    // Keep today's date.
-  } else {
-    return { missing: 'date' };
-  }
+  if (!date) return { missing: 'date' };
 
+  // Extract task title.
   const title = text
     .replace(/^(please\s+)?(create|add|make|schedule)\s+(a\s+)?(new\s+)?task\s+(to\s+)?/i, '')
-    .replace(/\b(today|tomorrow)\b/i, '')
-    .replace(/\b(at\s+)?\d{1,2}(?::\d{2})?\s*(AM|PM)\b/i, '')
+    .replace(/\b(today|tomorrow|next\s+(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday)|in\s+\d+\s+days?)\b/i, '')
+.replace(/\b\d{1,2}(?:st|nd|rd|th)?\s+of\s+(?:this|next)\s+month\b/i, '')
+.replace(/\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}(?:st|nd|rd|th)?\b/i, '')
+.replace(/\b\d{1,2}(?:st|nd|rd|th)?\s+(?:january|february|march|april|may|june|july|august|september|october|november|december)\b/i, '')
+    .replace(/\b(at\s+)?\d{1,2}(?::[0-5]\d)?\s*(a\.?m\.?|p\.?m\.?)\b/i, '')
     .replace(/\b(at\s+)?([01]?\d|2[0-3]):([0-5]\d)\b/i, '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -241,7 +347,7 @@ reminderNotified: Boolean(item.reminderNotified),
       <li class="timeline-item" data-item-id="${escapeHTML(item.id)}">
         <div class="timeline-time">${time12(item.start)}</div>
         <div class="timeline-track"><span class="timeline-dot"></span></div>
-        <div class="timeline-content">
+        <div class="timeline-content ${item.isReminder ? 'is-reminder' : ''}">
           <button
   class="task-check"
   type="button"
@@ -251,10 +357,10 @@ reminderNotified: Boolean(item.reminderNotified),
 >
   <span aria-hidden="true">✓</span>
 </button>
-          <div class="event-icon">${typeIcon(item.type)}</div>
+          <div class="event-icon">${item.isReminder ? '🔔' : typeIcon(item.type)}</div>
           <div class="event-info">
             <div class="event-title">${escapeHTML(item.title)}</div>
-            <div class="event-meta">${time12(item.start)} · ${item.duration} min · ${typeLabel(item.type)}</div>
+            <div class="event-meta">${time12(item.start)} · ${item.duration} min · ${item.isReminder ? 'Reminder' : typeLabel(item.type)}</div>
           </div>
           <span class="event-tag ${priorityClass(item.priority)}">${escapeHTML(item.priority)}</span>
                    <div class="task-menu-wrap">
@@ -305,7 +411,7 @@ reminderNotified: Boolean(item.reminderNotified),
     list.innerHTML = items.length ? items.map(item => `
       <li>
         <span class="upcoming-time">${time12(item.start)}</span>
-        <div><div class="upcoming-event">${escapeHTML(item.title)}</div><div class="upcoming-type">${typeLabel(item.type)}</div></div>
+        <div><div class="upcoming-event">${escapeHTML(item.title.trim())}</div><div class="upcoming-type">${item.isReminder ? 'Reminder' : typeLabel(item.type)}</div></div>
       </li>
     `).join('') : '<li><div class="upcoming-type">No events planned for tomorrow.</div></li>';
     const more = $('#moreEventsLink');
@@ -526,15 +632,15 @@ reminderNotified: Boolean(item.reminderNotified),
 
     return `<button
       type="button"
-      class="cal-event ${item.type}"
+      class="cal-event ${item.type} ${item.isReminder ? 'is-reminder' : ''}"
       data-calendar-edit="${escapeHTML(item.id)}"
       data-calendar-event="${escapeHTML(item.id)}"
       data-calendar-date="${escapeHTML(item.date)}"
       title="${escapeHTML(item.title)} · ${time12(item.start)} · ${item.duration} min"
       style="top:${top}px;height:${height}px;left:calc(${left}% + 4px);width:calc(${width}% - 8px);right:auto"
     >
-      <strong>${escapeHTML(item.title)}</strong>
-      ${showTime ? `<small>${time12(item.start)} · ${item.duration} min</small>` : ''}
+      <strong>${item.isReminder ? '🔔 ' : ''}${escapeHTML(item.title)}</strong>
+${showTime ? `<small>${time12(item.start)} · ${item.duration} min${item.isReminder ? ' · Reminder' : ''}</small>` : ''}
       <span class="cal-event-resize" data-resize="${escapeHTML(item.id)}" aria-label="Resize event"></span>
     </button>`;
   }
@@ -625,7 +731,7 @@ function renderMonthCalendar() {
         const classes = ['cal-month-cell', day.getMonth() !== selected.getMonth() ? 'other-month' : ''].join(' ');
         return `<div class="${classes}" data-month-date="${dateKey(day)}">
           <div class="cal-month-date ${sameDate(day,new Date()) ? 'today' : ''}">${day.getDate()}</div>
-          ${list.slice(0, 3).map(item => `<div class="cal-month-event ${item.type}" data-calendar-edit="${escapeHTML(item.id)}">${escapeHTML(item.title)}</div>`).join('')}
+          ${list.slice(0, 3).map(item => `<div class="cal-month-event ${item.type} ${item.isReminder ? 'is-reminder' : ''}" data-calendar-edit="${escapeHTML(item.id)}">${item.isReminder ? '🔔 Reminder · ' : ''}${escapeHTML(item.title)}</div>`).join('')}
           ${list.length > 3 ? `<div class="cal-empty">+${list.length - 3} more</div>` : ''}
         </div>`;
       }).join('')}
@@ -668,14 +774,17 @@ function renderMonthCalendar() {
   }
 
   function toggleAssistant(force) {
-    const panel = $('#assistantPanel');
-    if (!panel) return;
-    state.assistantOpen = typeof force === 'boolean' ? force : !state.assistantOpen;
-    panel.classList.toggle('assistant-open', state.assistantOpen);
-    if (window.innerWidth <= 1250) {
-      panel.style.display = state.assistantOpen ? 'flex' : 'none';
-    }
-  }
+  const panel = $('#assistantPanel');
+  const app = $('#app');
+
+  if (!panel || !app) return;
+
+  state.assistantOpen =
+    typeof force === 'boolean' ? force : !state.assistantOpen;
+
+  app.classList.toggle('assistant-visible', state.assistantOpen);
+  panel.classList.toggle('assistant-open', state.assistantOpen);
+}
 
   function setAssistantState(value, text) {
     const orb = $('#assistantOrb');
@@ -808,11 +917,73 @@ function sendAssistantMessage() {
     return;
   }
 
+  // Continue an incomplete assistant request.
+  if (pendingAssistantDraft) {
+    const draft = pendingAssistantDraft;
+    const combinedMessage = `${draft.message} ${message}`;
+
+    const result = draft.kind === 'reminder'
+      ? parseAssistantReminderRequest(combinedMessage)
+      : parseAssistantTaskRequest(combinedMessage);
+
+    draft.message = combinedMessage;
+
+    if (result.missing) {
+      pendingAssistantDraft = {
+  kind: draft.kind,
+  message: combinedMessage
+};
+      const prompts = {
+        date: 'What day should I schedule that?',
+        time: 'What time should I schedule that?',
+        title: 'What should I call it?'
+      };
+
+      appendAssistantMessage(prompts[result.missing], 'assistant');
+      setAssistantState('idle');
+      return;
+    }
+
+    pendingAssistantDraft = null;
+
+    if (draft.kind === 'reminder') {
+      pendingAssistantReminder = result;
+
+      const readableDate = new Intl.DateTimeFormat('en', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+      }).format(parseDate(result.date));
+
+      appendAssistantMessage(
+        `Here's your reminder:\n\nReminder: ${result.title}\nDate: ${readableDate}\nTime: ${time12(result.start)}\n\nShould I save this reminder? Reply Yes or No.`,
+        'assistant'
+      );
+    } else {
+      pendingAssistantTask = result;
+
+      const readableDate = new Intl.DateTimeFormat('en', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+      }).format(parseDate(result.date));
+
+      appendAssistantMessage(
+        `Here's the task I understood:\n\nTask: ${result.title}\nDate: ${readableDate}\nTime: ${time12(result.start)}\n\nShould I save this task? Reply Yes or No.`,
+        'assistant'
+      );
+    }
+
+    setAssistantState('idle');
+    return;
+  }
+
   // Detect reminder requests.
   if (/\bremind me to\b/i.test(lower)) {
     const result = parseAssistantReminderRequest(message);
 
     if (result.missing) {
+      pendingAssistantDraft = { kind: 'reminder', message };
       const prompts = {
         date: 'What day should I remind you? Please say today or tomorrow.',
         time: 'What time should I remind you?',
@@ -846,11 +1017,15 @@ function sendAssistantMessage() {
   }
 
   // Detect ordinary task requests.
-  if (/\b(create|add|make|schedule)\b/i.test(lower) &&
-      /\btask\b/i.test(lower)) {
+  if (
+  /\b(create|add|make|schedule)\b/i.test(lower) &&
+  /\btask\b/i.test(lower) ||
+  /^(call|email|text|message|finish|complete|buy|pick up|send|meet|review|prepare|submit|check|visit|book)\b/i.test(lower)
+) {
     const result = parseAssistantTaskRequest(message);
 
     if (result.missing) {
+      pendingAssistantDraft = { kind: 'task', message };
       const prompts = {
         date: 'What day should I schedule this task? Please say today or tomorrow.',
         time: 'What time should I schedule this task?',
@@ -936,7 +1111,9 @@ function sendAssistantMessage() {
       });
     });
 
-    $('#navAssistant')?.addEventListener('click', () => toggleAssistant());
+    $('#navAssistant')?.addEventListener('click', () => {
+  toggleAssistant(!state.assistantOpen);
+});
 
     $('#assistantCloseBtn')?.addEventListener('click', () => toggleAssistant(false));
 
@@ -1173,28 +1350,101 @@ function sendAssistantMessage() {
     });
   }
 
-  function initAssistant() {
-    $('#assistantSend')?.addEventListener('click', sendAssistantMessage);
+  
+function initAssistant() {
+  const input = $('#assistantInput');
+  const orb = $('#assistantOrb');
 
-    $('#assistantInput')?.addEventListener('keydown', event => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        sendAssistantMessage();
+  $('#assistantSend')?.addEventListener('click', sendAssistantMessage);
+
+  input?.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      sendAssistantMessage();
+    }
+  });
+
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  let recognition = null;
+  let isListening = false;
+
+  function startVoiceInput() {
+    if (!SpeechRecognition) {
+      toast('Voice recognition is not supported in this browser. Try Chrome.');
+      return;
+    }
+
+    if (isListening && recognition) {
+      recognition.stop();
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      isListening = true;
+      setAssistantState('listening', 'Listening...');
+    };
+
+    recognition.onresult = event => {
+      let transcript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
       }
-    });
 
-    $('#micBtn')?.addEventListener('click', () => {
-      setAssistantState('listening', 'Voice input');
-      toast('Voice input is not connected yet.');
-      setTimeout(() => setAssistantState('idle'), 1800);
-      toggleAssistant(true);
-    });
+      if (input) {
+        input.value = transcript;
+      }
 
-    $('#assistantOrb')?.addEventListener('click', () => {
-      setAssistantState('listening');
-      setTimeout(() => setAssistantState('idle'), 1800);
-    });
+      const finalResult = event.results[event.results.length - 1];
+
+      if (finalResult.isFinal) {
+        input.value = transcript.trim();
+        recognition.stop();
+
+        if (input.value) {
+          sendAssistantMessage();
+        }
+      }
+    };
+
+    recognition.onerror = event => {
+      console.error('Speech recognition error:', event.error);
+
+      if (event.error !== 'no-speech' &&
+          event.error !== 'aborted') {
+        toast('Voice input error: ' + event.error);
+      }
+    };
+
+    recognition.onend = () => {
+      isListening = false;
+      setAssistantState('idle');
+    };
+
+    try {
+      recognition.start();
+    } catch (error) {
+      console.error('Could not start voice recognition:', error);
+      toast('Could not start microphone. Please try again.');
+    }
   }
+
+  orb?.addEventListener('click', startVoiceInput);
+
+  // Keep the existing top microphone shortcut working.
+  $('#micBtn')?.addEventListener('click', () => {
+    toggleAssistant(true);
+    startVoiceInput();
+  });
+}
+
 
   function initQuickActions() {
     $('#quickFocusBtn')?.addEventListener('click', () => {
