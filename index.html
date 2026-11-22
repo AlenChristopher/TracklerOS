@@ -37,7 +37,7 @@
     <div class="sidebar3-icons">
       <button class="icon-btn" id="lightModeBtn" aria-label="Light mode">☀️</button>
       <button class="icon-btn" id="darkModeBtn" aria-label="Dark mode">🌙</button>
-      <button class="icon-btn" id="reducedMotionBtn" aria-label="Toggle reduced motion" aria-pressed="false">◐</button>
+      
       <button class="icon-btn" id="sidebarCollapseBtn" aria-label="Collapse sidebar">«</button>
     </div>
   </aside>
@@ -48,6 +48,10 @@
         <h1 id="greetingHeading">Good Morning, Alen <span class="wave">👋</span></h1>
         <p id="greetingSub">I've prepared everything for a productive day.</p>
       </div>
+            <div class="dashboard-clock">
+        <div id="liveClock">00:00:00</div>
+        <div id="liveDate">Sunday, 22 November</div>
+      </div>
       <div class="search3">
         <span class="search3-icon">🔍</span>
         <input type="text" placeholder="Search anything..." id="searchInput">
@@ -55,10 +59,33 @@
       </div>
       <div class="top3-actions">
         <button class="icon-btn round" id="micBtn" aria-label="Voice input">🎙</button>
-        <button class="icon-btn round" aria-label="Notifications">🔔<span class="badge">3</span></button>
+        <button
+  class="icon-btn round"
+  id="notificationBtn"
+  aria-label="Open notifications"
+  aria-expanded="false"
+  aria-controls="notificationPanel"
+>
+  🔔
+</button>
         <button class="icon-btn round" id="themeBtn" aria-label="Toggle theme">☀️</button>
       </div>
-    </header>
+    </header> 
+
+<div class="notification-panel hidden" id="notificationPanel">
+  <div class="notification-panel-header">
+    <strong>Notifications</strong>
+    <span class="notification-count" id="notificationCount">0 unread</span>
+  </div>
+
+  <div class="notification-empty">
+    <div class="notification-empty-icon">♧</div>
+    <strong>You're all caught up</strong>
+    <p>You don't have any notifications right now.</p>
+  </div>
+</div>
+
+<section class="briefing-card">
     <section class="briefing-card">
       <div class="briefing-main">
         <div class="briefing-kicker">Daily Briefing</div>
@@ -171,6 +198,12 @@
         <span></span><span></span><span></span><span></span><span></span>
       </div>
     </div>
+    <div class="assistant-chat" id="assistantChat" aria-live="polite">
+  <div class="assistant-welcome">
+    Hi! I'm Trackler. I can help you create tasks and reminders.
+    <p>Try: "Remind me to call John at 4 PM."</p>
+  </div>
+</div>
     <div class="upcoming-row"><span>Upcoming</span><span class="upcoming-toggle">Tomorrow ⌄</span></div>
     <ul class="upcoming-list" id="upcomingList"></ul>
     <a class="more-events" id="moreEventsLink" href="#"></a>
